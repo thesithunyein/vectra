@@ -19,6 +19,13 @@ Built for non-crypto plant teams. No wallet steps.
 - Next.js · TypeScript · Tailwind
 - Recharts · Lucide · Framer Motion
 
+## Live
+
+- **Product:** [https://vectra-app-khaki.vercel.app](https://vectra-app-khaki.vercel.app)
+- **GitHub:** [https://github.com/thesithunyein/vectra](https://github.com/thesithunyein/vectra)
+
+Sign in with **Continue as Ops Lead (Apex Precision)** to open the console.
+
 ## Run locally
 
 ```bash
@@ -28,8 +35,6 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
-
-Sign in with **Continue as Ops Lead (Apex Precision)** to open the console.
 
 ## Demo loop
 
