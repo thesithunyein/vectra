@@ -1,8 +1,12 @@
 # Vectra
 
-Industrial Monitoring for manufacturing plants.
+<p align="center">
+  <img src="public/logo.png" alt="Vectra" width="72" height="72" />
+</p>
 
-Vectra helps Ops Leads and Maintenance Supervisors respond to downtime fast and leave signed shift handoffs crews and vendors can trust.
+**Vectra** · Industrial Monitoring
+
+Live ops console for manufacturing plants. Respond to downtime fast and leave signed shift handoffs crews and vendors can trust.
 
 ## Product
 
@@ -11,8 +15,9 @@ Vectra helps Ops Leads and Maintenance Supervisors respond to downtime fast and 
 - Maintenance close with reason codes
 - Signed records with integrity check
 - Weekly report export
+- Dark / light mode
 
-Built for non-crypto plant teams. No wallet steps.
+Built for plant teams. No wallet steps.
 
 ## Stack
 
@@ -36,7 +41,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
-## Demo loop
+## Core loop
 
 1. Overview: open critical alert + downtime cost
 2. Alerts: Early warning on AOI-01
@@ -48,4 +53,5 @@ Open [http://localhost:3000](http://localhost:3000)
 
 - Product: **Vectra**
 - Subtitle: **Industrial Monitoring**
-- Logo: blue squircle with white chevrons
+- Logo: blue mark with white geometric A (`public/logo.png`)
+- Accent: `#0066FF`

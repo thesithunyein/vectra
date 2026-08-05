@@ -29,8 +29,8 @@ export function ProductionTrendChart() {
           <AreaChart data={productionTrend}>
             <defs>
               <linearGradient id="prodGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4} />
-                <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                <stop offset="0%" stopColor="#0066ff" stopOpacity={0.4} />
+                <stop offset="100%" stopColor="#0066ff" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid stroke="var(--chart-grid)" vertical={false} />
@@ -41,7 +41,7 @@ export function ProductionTrendChart() {
               type="monotone"
               dataKey="production"
               name="Production"
-              stroke="#3b82f6"
+              stroke="#0066ff"
               fill="url(#prodGrad)"
               strokeWidth={2}
               animationDuration={600}

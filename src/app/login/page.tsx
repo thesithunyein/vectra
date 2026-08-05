@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { CURRENT_USER, SESSION_KEY, createSession } from "@/lib/auth";
+import { BrandLogo } from "@/components/BrandLogo";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 function LoginForm() {
   const router = useRouter();
@@ -30,9 +31,13 @@ function LoginForm() {
   }
 
   return (
-    <div className="card w-full max-w-md p-8">
+    <div className="relative w-full max-w-md">
+      <div className="absolute -top-12 right-0">
+        <ThemeToggle />
+      </div>
+      <div className="card w-full p-8">
       <div className="mb-8 flex items-center gap-3">
-        <Image src="/logo.svg" alt="Vectra" width={40} height={40} />
+        <BrandLogo size={40} priority />
         <div>
           <div className="text-[16px] font-semibold">Vectra</div>
           <div className="text-[12px] text-[var(--text-muted)]">Industrial Monitoring</div>
@@ -87,10 +92,11 @@ function LoginForm() {
         Live plant workspace for {CURRENT_USER.plant}. Not a public sample account.
       </p>
       <p className="mt-3 text-center text-[12px] text-[var(--text-muted)]">
-        <Link href="/" className="hover:text-white">
+        <Link href="/" className="hover:text-[var(--text-primary)]">
           Back to home
         </Link>
       </p>
+      </div>
     </div>
   );
 }

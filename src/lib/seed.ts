@@ -30,7 +30,7 @@ export const productionTrend = [
 
 export const costBreakdown = [
   { name: "Energy", value: 52400, percent: 42, color: "#f59e0b" },
-  { name: "Labor", value: 38200, percent: 31, color: "#3b82f6" },
+  { name: "Labor", value: 38200, percent: 31, color: "#0066ff" },
   { name: "Materials", value: 21500, percent: 17, color: "#8b5cf6" },
 ];
 

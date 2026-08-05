@@ -3,7 +3,7 @@
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import { downtimeBreakdown } from "@/lib/seed";
 
-const COLORS = ["#3b82f6", "#6366f1", "#8b5cf6", "#a1a1aa"];
+const COLORS = ["#0066ff", "#3b82f6", "#6366f1", "#94a3b8"];
 
 export function DowntimeDonut() {
   const primary = downtimeBreakdown[0];

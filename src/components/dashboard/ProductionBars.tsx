@@ -24,7 +24,7 @@ export function ProductionBars() {
             <YAxis tick={{ fill: "#71717a", fontSize: 12 }} axisLine={false} tickLine={false} />
             <Tooltip content={<ChartTooltip />} />
             <Bar dataKey="planned" name="Planned" fill="#27272a" radius={[4, 4, 0, 0]} animationDuration={600} />
-            <Bar dataKey="actual" name="Actual" fill="#3b82f6" radius={[4, 4, 0, 0]} animationDuration={600} />
+            <Bar dataKey="actual" name="Actual" fill="#0066ff" radius={[4, 4, 0, 0]} animationDuration={600} />
           </BarChart>
         </ResponsiveContainer>
       </div>

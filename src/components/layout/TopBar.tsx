@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth-context";
 import { CURRENT_USER } from "@/lib/auth";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export function TopBar({ title, subtitle }: { title: string; subtitle: string }) {
   const { alerts } = useStore();
@@ -14,10 +15,10 @@ export function TopBar({ title, subtitle }: { title: string; subtitle: string })
   const user = session ?? CURRENT_USER;
 
   return (
-    <div className="sticky top-0 z-30 border-b border-[var(--border-subtle)] bg-[var(--bg-base)]/80 backdrop-blur-xl">
+    <div className="sticky top-0 z-30 border-b border-[var(--border-subtle)] surface-blur">
       <div className="flex items-center gap-4 px-8 py-3">
         <div className="hidden items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-1.5 text-[12px] lg:flex">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
           <span className="text-[var(--text-secondary)]">{CURRENT_USER.plantSite}</span>
           <span className="text-[var(--text-muted)]">·</span>
           <span className="text-[var(--text-muted)]">{CURRENT_USER.shift}</span>
@@ -33,14 +34,15 @@ export function TopBar({ title, subtitle }: { title: string; subtitle: string })
             ⌘K
           </kbd>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="relative rounded-lg p-2 text-[var(--text-secondary)] hover:bg-white/[0.04]">
+        <div className="flex items-center gap-1.5">
+          <ThemeToggle />
+          <button className="relative rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">
             <Bell className="h-[18px] w-[18px]" strokeWidth={1.5} />
             {unread > 0 && (
               <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[var(--danger)]" />
             )}
           </button>
-          <button className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-white/[0.04]">
+          <button className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">
             <Settings className="h-[18px] w-[18px]" strokeWidth={1.5} />
           </button>
           <div className="relative">
@@ -67,7 +69,7 @@ export function TopBar({ title, subtitle }: { title: string; subtitle: string })
                 </div>
                 <button
                   onClick={signOut}
-                  className="mt-3 w-full rounded-lg border border-[var(--border-subtle)] px-3 py-2 text-[12px] hover:bg-white/[0.04]"
+                  className="mt-3 w-full rounded-lg border border-[var(--border-subtle)] px-3 py-2 text-[12px] hover:bg-[var(--bg-hover)]"
                 >
                   Sign out
                 </button>

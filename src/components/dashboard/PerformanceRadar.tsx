@@ -20,8 +20,8 @@ export function PerformanceRadar() {
             <PolarAngleAxis dataKey="metric" tick={{ fill: "#a1a1aa", fontSize: 11 }} />
             <Radar
               dataKey="value"
-              stroke="#3b82f6"
-              fill="#3b82f6"
+              stroke="#0066ff"
+              fill="#0066ff"
               fillOpacity={0.15}
               strokeWidth={2}
               animationDuration={600}

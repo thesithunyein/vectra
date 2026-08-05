@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,16 +20,46 @@ export const metadata: Metadata = {
   },
   description:
     "Vectra Industrial Monitoring. Downtime response and shift handoffs for manufacturing plants.",
+  icons: {
+    icon: [{ url: "/logo.png", type: "image/png" }],
+    apple: [{ url: "/logo.png" }],
+    shortcut: ["/logo.png"],
+  },
+  openGraph: {
+    title: "Vectra",
+    description:
+      "Industrial monitoring for downtime response and signed shift handoffs.",
+    images: ["/logo.png"],
+  },
 };
+
+const themeInit = `
+(function(){
+  try {
+    var t = localStorage.getItem('vectra_theme');
+    if (t !== 'light' && t !== 'dark') {
+      t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    }
+    document.documentElement.classList.add(t);
+    document.documentElement.style.colorScheme = t;
+  } catch (e) {
+    document.documentElement.classList.add('dark');
+  }
+})();
+`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
+      </head>
       <body className="min-h-full flex flex-col bg-[var(--bg-base)] text-[var(--text-primary)]">
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

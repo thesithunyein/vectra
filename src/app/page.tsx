@@ -1,37 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, ShieldCheck, Bell, Wrench } from "lucide-react";
 import { ROI } from "@/lib/seed";
 import { formatRm } from "@/lib/format";
+import { BrandLogo } from "@/components/BrandLogo";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export default function LandingPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden bg-[var(--bg-base)]">
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.35]"
+        className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-35"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)",
+            "linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px)",
           backgroundSize: "64px 64px",
         }}
       />
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-3">
-          <Image src="/logo.svg" alt="Vectra" width={36} height={36} />
+          <BrandLogo size={36} priority />
           <div>
             <div className="text-[15px] font-semibold">Vectra</div>
             <div className="text-[12px] text-[var(--text-muted)]">Industrial Monitoring</div>
           </div>
         </div>
-        <Link
-          href="/login"
-          className="rounded-lg border border-[var(--border-subtle)] px-4 py-2 text-[13px] hover:bg-white/[0.04]"
-        >
-          Sign in
-        </Link>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Link
+            href="/login"
+            className="rounded-lg border border-[var(--border-subtle)] px-4 py-2 text-[13px] hover:bg-[var(--bg-hover)]"
+          >
+            Sign in
+          </Link>
+        </div>
       </header>
 
       <main className="relative z-10 mx-auto max-w-6xl px-6 pb-24 pt-16">
@@ -41,9 +45,10 @@ export default function LandingPage() {
           transition={{ duration: 0.4 }}
           className="max-w-3xl"
         >
-          <p className="mb-4 text-[13px] font-medium text-[var(--accent)]">
-            Built for plant teams · Apex Precision ready
-          </p>
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-1.5 text-[12px] text-[var(--text-secondary)] shadow-[var(--shadow-card)]">
+            <BrandLogo size={18} />
+            Apex Precision · Shah Alam Plant 2
+          </div>
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
             Downtime response and signed shift handoffs
           </h1>
@@ -61,7 +66,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/login?next=/analytics"
-              className="rounded-lg border border-[var(--border-subtle)] px-5 py-2.5 text-[14px] hover:bg-white/[0.04]"
+              className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-5 py-2.5 text-[14px] hover:bg-[var(--bg-hover)]"
             >
               Sign in to analytics
             </Link>
@@ -142,7 +147,11 @@ export default function LandingPage() {
       </main>
 
       <footer className="relative z-10 border-t border-[var(--border-subtle)] py-8 text-center text-[12px] text-[var(--text-muted)]">
-        Vectra · Industrial Monitoring · Built for manufacturing teams
+        <div className="mb-2 flex items-center justify-center gap-2">
+          <BrandLogo size={20} />
+          <span className="font-medium text-[var(--text-secondary)]">Vectra</span>
+        </div>
+        Industrial Monitoring · Built for manufacturing teams
       </footer>
     </div>
   );

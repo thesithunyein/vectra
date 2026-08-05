@@ -1,21 +1,44 @@
 @import "tailwindcss";
 
-:root {
+:root,
+html.dark {
   --bg-base: #0a0a0b;
   --bg-elevated: #111113;
   --bg-card: #161618;
   --bg-card-hover: #1c1c1f;
+  --bg-hover: rgba(255, 255, 255, 0.04);
   --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.12);
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
   --text-muted: #71717a;
-  --accent: #3b82f6;
-  --accent-soft: rgba(59, 130, 246, 0.12);
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --chart-grid: rgba(255, 255, 255, 0.04);
+  --accent: #0066ff;
+  --accent-soft: rgba(0, 102, 255, 0.14);
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --chart-grid: rgba(255, 255, 255, 0.05);
+  --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+html.light {
+  --bg-base: #f4f5f7;
+  --bg-elevated: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --bg-hover: rgba(15, 23, 42, 0.04);
+  --border-subtle: rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.14);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --accent: #0066ff;
+  --accent-soft: rgba(0, 102, 255, 0.1);
+  --success: #15803d;
+  --warning: #b45309;
+  --danger: #b91c1c;
+  --chart-grid: rgba(15, 23, 42, 0.06);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.04);
 }
 
 @theme inline {
@@ -33,6 +56,10 @@ html {
   color-scheme: dark;
 }
 
+html.light {
+  color-scheme: light;
+}
+
 body {
   background: var(--bg-base);
   color: var(--text-primary);
@@ -47,8 +74,9 @@ body {
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  transition: border-color 150ms ease, transform 150ms ease;
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
+  transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
 }
 
 .card:hover {
@@ -58,6 +86,11 @@ body {
 .accent-soft {
   background: var(--accent-soft);
   color: var(--accent);
+}
+
+.surface-blur {
+  background: color-mix(in srgb, var(--bg-base) 80%, transparent);
+  backdrop-filter: blur(16px);
 }
 
 @media (prefers-reduced-motion: reduce) {
