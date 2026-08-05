@@ -1,20 +1,32 @@
 "use client";
 
-import { Bell, Search, Settings } from "lucide-react";
+import { Bell, Search, Settings, ChevronDown } from "lucide-react";
+import { useState } from "react";
 import { useStore } from "@/lib/store";
+import { useAuth } from "@/lib/auth-context";
+import { CURRENT_USER } from "@/lib/auth";
 
 export function TopBar({ title, subtitle }: { title: string; subtitle: string }) {
   const { alerts } = useStore();
+  const { session, signOut } = useAuth();
+  const [open, setOpen] = useState(false);
   const unread = alerts.filter((a) => a.status === "open").length;
+  const user = session ?? CURRENT_USER;
 
   return (
     <div className="sticky top-0 z-30 border-b border-[var(--border-subtle)] bg-[var(--bg-base)]/80 backdrop-blur-xl">
       <div className="flex items-center gap-4 px-8 py-3">
+        <div className="hidden items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-1.5 text-[12px] lg:flex">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          <span className="text-[var(--text-secondary)]">{CURRENT_USER.plantSite}</span>
+          <span className="text-[var(--text-muted)]">·</span>
+          <span className="text-[var(--text-muted)]">{CURRENT_USER.shift}</span>
+        </div>
         <div className="relative mx-auto w-full max-w-md">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" strokeWidth={1.5} />
           <input
             type="search"
-            placeholder="Search devices, alerts..."
+            placeholder="Search machines, alerts, records..."
             className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] py-2 pl-10 pr-12 text-[13px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--accent)]"
           />
           <kbd className="absolute right-3 top-1/2 -translate-y-1/2 rounded border border-[var(--border-subtle)] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]">
@@ -31,8 +43,36 @@ export function TopBar({ title, subtitle }: { title: string; subtitle: string })
           <button className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-white/[0.04]">
             <Settings className="h-[18px] w-[18px]" strokeWidth={1.5} />
           </button>
-          <div className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[12px] font-medium text-[var(--accent)] ring-1 ring-[var(--border-strong)]">
-            FA
+          <div className="relative">
+            <button
+              onClick={() => setOpen((v) => !v)}
+              className="ml-1 flex items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] py-1 pl-1 pr-2 hover:border-[var(--border-strong)]"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[12px] font-medium text-[var(--accent)]">
+                {CURRENT_USER.initials}
+              </div>
+              <div className="hidden text-left sm:block">
+                <div className="text-[12px] font-medium leading-tight">{user.name}</div>
+                <div className="text-[11px] text-[var(--text-muted)]">{CURRENT_USER.role}</div>
+              </div>
+              <ChevronDown className="h-3.5 w-3.5 text-[var(--text-muted)]" />
+            </button>
+            {open && (
+              <div className="absolute right-0 mt-2 w-64 rounded-xl border border-[var(--border-strong)] bg-[var(--bg-card)] p-3 shadow-2xl">
+                <div className="text-[13px] font-medium">{CURRENT_USER.name}</div>
+                <div className="text-[12px] text-[var(--text-secondary)]">{CURRENT_USER.role}</div>
+                <div className="mt-1 font-mono text-[11px] text-[var(--accent)]">{CURRENT_USER.email}</div>
+                <div className="mt-2 border-t border-[var(--border-subtle)] pt-2 text-[12px] text-[var(--text-muted)]">
+                  {CURRENT_USER.plant} · {CURRENT_USER.plantSite}
+                </div>
+                <button
+                  onClick={signOut}
+                  className="mt-3 w-full rounded-lg border border-[var(--border-subtle)] px-3 py-2 text-[12px] hover:bg-white/[0.04]"
+                >
+                  Sign out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

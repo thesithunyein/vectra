@@ -42,7 +42,7 @@ export default function LandingPage() {
           className="max-w-3xl"
         >
           <p className="mb-4 text-[13px] font-medium text-[var(--accent)]">
-            For manufacturing plants · No wallet steps
+            Built for plant teams · Apex Precision ready
           </p>
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
             Downtime response and signed shift handoffs
@@ -60,10 +60,10 @@ export default function LandingPage() {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/analytics"
+              href="/login?next=/analytics"
               className="rounded-lg border border-[var(--border-subtle)] px-5 py-2.5 text-[14px] hover:bg-white/[0.04]"
             >
-              View analytics
+              Sign in to analytics
             </Link>
           </div>
         </motion.div>

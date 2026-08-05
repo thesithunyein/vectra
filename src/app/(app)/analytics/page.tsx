@@ -16,7 +16,7 @@ export default function AnalyticsPage() {
     <>
       <TopBar
         title="Analytics Dashboard"
-        subtitle="Comprehensive operational analytics and insights."
+        subtitle="Live operational analytics for Apex Precision Plant 2."
       />
       <PageTransition>
         <div className="space-y-5 px-8 pb-10">

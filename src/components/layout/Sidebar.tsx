@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import clsx from "clsx";
+import { useAuth } from "@/lib/auth-context";
+import { CURRENT_USER } from "@/lib/auth";
 
 const nav = [
   { href: "/overview", label: "Overview", icon: LayoutDashboard },
@@ -28,6 +30,7 @@ const nav = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { signOut } = useAuth();
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
@@ -37,6 +40,12 @@ export function Sidebar() {
           <div className="text-[15px] font-semibold tracking-tight">Vectra</div>
           <div className="text-[12px] text-[var(--text-muted)]">Industrial Monitoring</div>
         </div>
+      </div>
+
+      <div className="mx-3 mb-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2.5">
+        <div className="text-[11px] text-[var(--text-muted)]">Plant workspace</div>
+        <div className="text-[13px] font-medium">{CURRENT_USER.plant}</div>
+        <div className="text-[11px] text-[var(--text-secondary)]">{CURRENT_USER.plantSite}</div>
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-2">
@@ -69,13 +78,16 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-[var(--border-subtle)] p-3">
-        <Link
-          href="/login"
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-[var(--text-secondary)] transition-colors hover:bg-white/[0.03] hover:text-white"
+        <div className="mb-2 px-3 text-[11px] text-[var(--text-muted)]">
+          {CURRENT_USER.name} · {CURRENT_USER.role}
+        </div>
+        <button
+          onClick={signOut}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-[var(--text-secondary)] transition-colors hover:bg-white/[0.03] hover:text-white"
         >
           <LogOut className="h-[18px] w-[18px]" strokeWidth={1.5} />
-          Log Out
-        </Link>
+          Sign out
+        </button>
       </div>
     </aside>
   );

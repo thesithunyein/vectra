@@ -17,7 +17,7 @@ export default function OverviewPage() {
     <>
       <TopBar
         title="Overview"
-        subtitle={`${PLANT_NAME} · Day shift snapshot`}
+        subtitle={`${PLANT_NAME} · live shift board for Farah Aziz (Ops Lead)`}
       />
       <PageTransition>
         <div className="space-y-5 px-8 pb-10">

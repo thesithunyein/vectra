@@ -24,7 +24,7 @@ Built for non-crypto plant teams. No wallet steps.
 - **Product:** [https://vectra-app-khaki.vercel.app](https://vectra-app-khaki.vercel.app)
 - **GitHub:** [https://github.com/thesithunyein/vectra](https://github.com/thesithunyein/vectra)
 
-Sign in with **Continue as Ops Lead (Apex Precision)** to open the console.
+Sign in as **Farah Aziz** (Ops Lead) with work email `farah@apex-precision.my` to open the Apex Precision plant workspace. App pages require sign-in.
 
 ## Run locally
 
