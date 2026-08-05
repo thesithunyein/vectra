@@ -1,23 +1,50 @@
 import { NextResponse } from "next/server";
 
-export async function POST(request: Request) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: "OPENAI_API_KEY is not configured on the server." },
-      { status: 503 }
-    );
-  }
+type BriefInput = {
+  title?: string;
+  severity?: string;
+  driftDetected?: boolean;
+  driftReason?: string;
+  deviceName?: string;
+  line?: string;
+  status?: string;
+};
 
-  let body: {
-    title?: string;
-    severity?: string;
-    driftDetected?: boolean;
-    driftReason?: string;
-    deviceName?: string;
-    line?: string;
-    status?: string;
-  };
+function buildAssistBrief(body: BriefInput) {
+  const device = body.deviceName || "Unknown machine";
+  const line = body.line || "unknown line";
+  const severity = body.severity || "warning";
+  const drift = body.driftDetected
+    ? body.driftReason || "Baseline drift detected on this line."
+    : "No baseline drift flag on this alert.";
+
+  const cause = body.driftDetected
+    ? "Process drift or sensor/recipe mismatch vs recent baseline."
+    : severity === "critical"
+      ? "Hard fault or stop condition on the machine."
+      : "Degraded performance or soft fault.";
+
+  const action =
+    severity === "critical"
+      ? `Assign maintenance to ${device}, isolate ${line}, then close with reason code.`
+      : `Acknowledge, inspect ${device} on ${line}, assign if fault persists.`;
+
+  const risk =
+    severity === "critical"
+      ? "Unplanned downtime cost rises and shift handoff becomes disputed."
+      : "Small drift can become scrap, rework, or a larger stop.";
+
+  return [
+    `What's wrong: ${body.title || "Plant alert"} on ${device} (${line}).`,
+    `Likely cause: ${cause}`,
+    `Recommended action: ${action}`,
+    `Risk if ignored: ${risk}`,
+    `Signal detail: ${drift}`,
+  ].join("\n");
+}
+
+export async function POST(request: Request) {
+  let body: BriefInput;
 
   try {
     body = await request.json();
@@ -30,6 +57,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Alert title is required." }, { status: 400 });
   }
 
+  const apiKey = process.env.OPENAI_API_KEY;
   const context = [
     `Alert: ${title}`,
     `Severity: ${body.severity ?? "unknown"}`,
@@ -51,42 +79,41 @@ Recommended action:
 Risk if ignored:
 Keep each line under 18 words. No markdown. No hype. No blockchain talk. Human stays in control.`;
 
-  try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.3,
-        max_tokens: 220,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: context },
-        ],
-      }),
-    });
+  if (apiKey) {
+    try {
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          temperature: 0.3,
+          max_tokens: 220,
+          messages: [
+            { role: "system", content: system },
+            { role: "user", content: context },
+          ],
+        }),
+      });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      return NextResponse.json(
-        { error: "OpenAI request failed.", detail: errText.slice(0, 240) },
-        { status: 502 }
-      );
+      if (res.ok) {
+        const data = (await res.json()) as {
+          choices?: Array<{ message?: { content?: string } }>;
+        };
+        const brief = data.choices?.[0]?.message?.content?.trim();
+        if (brief) {
+          return NextResponse.json({ brief, source: "openai" });
+        }
+      }
+    } catch {
+      // Fall through to deterministic assist brief.
     }
-
-    const data = (await res.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-    const brief = data.choices?.[0]?.message?.content?.trim();
-    if (!brief) {
-      return NextResponse.json({ error: "Empty model response." }, { status: 502 });
-    }
-
-    return NextResponse.json({ brief });
-  } catch {
-    return NextResponse.json({ error: "Failed to generate brief." }, { status: 500 });
   }
+
+  return NextResponse.json({
+    brief: buildAssistBrief(body),
+    source: "assist",
+  });
 }

@@ -12,6 +12,7 @@ export default function AlertsPage() {
   const { alerts, devices, usingSample, acknowledgeAlert, assignAlert, resolveAlert } =
     useStore();
   const [briefs, setBriefs] = useState<Record<string, string>>({});
+  const [briefSource, setBriefSource] = useState<Record<string, string>>({});
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [briefError, setBriefError] = useState<Record<string, string>>({});
 
@@ -35,7 +36,11 @@ export default function AlertsPage() {
           line: device?.line,
         }),
       });
-      const data = (await res.json()) as { brief?: string; error?: string };
+      const data = (await res.json()) as {
+        brief?: string;
+        source?: string;
+        error?: string;
+      };
       if (!res.ok || !data.brief) {
         setBriefError((prev) => ({
           ...prev,
@@ -44,10 +49,14 @@ export default function AlertsPage() {
         return;
       }
       setBriefs((prev) => ({ ...prev, [alertId]: data.brief! }));
+      setBriefSource((prev) => ({
+        ...prev,
+        [alertId]: data.source === "openai" ? "AI brief · OpenAI" : "Ops assist brief",
+      }));
     } catch {
       setBriefError((prev) => ({
         ...prev,
-        [alertId]: "Could not reach AI brief service",
+        [alertId]: "Could not reach brief service",
       }));
     } finally {
       setLoadingId(null);
@@ -58,7 +67,7 @@ export default function AlertsPage() {
     <>
       <TopBar
         title="Alerts"
-        subtitle="Act on faults. AI drafts a brief — humans still decide."
+        subtitle="Act on faults. Briefs assist humans — people still decide."
       />
       <PageTransition>
         <div className="space-y-3 px-8 pb-10">
@@ -108,7 +117,7 @@ export default function AlertsPage() {
                       <div className="mt-3 max-w-2xl rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-4">
                         <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-[var(--accent)]">
                           <Sparkles className="h-3.5 w-3.5" strokeWidth={1.5} />
-                          AI brief
+                          {briefSource[a.id] || "AI brief"}
                         </div>
                         <pre className="whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-[var(--text-secondary)]">
                           {briefs[a.id]}
