@@ -5,32 +5,45 @@ import { Zap, Gauge, Clock, BadgeDollarSign, AlertTriangle } from "lucide-react"
 import { TopBar } from "@/components/layout/TopBar";
 import { PageTransition, StaggerChildren, StaggerItem } from "@/components/motion/PageTransition";
 import { KpiCard } from "@/components/dashboard/KpiCard";
+import { EmptyWorkspace } from "@/components/EmptyWorkspace";
 import { useStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth-context";
-import { kpis, ROI, PLANT_NAME } from "@/lib/seed";
+import { kpis, ROI } from "@/lib/seed";
 import { formatRm } from "@/lib/format";
 
 export default function OverviewPage() {
-  const { alerts } = useStore();
+  const { alerts, usingSample } = useStore();
   const { user } = useAuth();
   const open = alerts.filter((a) => a.status === "open");
+  const plant = user?.plant ?? "My plant";
 
   return (
     <>
       <TopBar
         title="Overview"
-        subtitle={`${PLANT_NAME} · live shift board for ${user?.name ?? "your team"}`}
+        subtitle={
+          usingSample
+            ? `${plant} · live shift board`
+            : `${plant} · live shift board for ${user?.name ?? "your team"}`
+        }
       />
       <PageTransition>
         <div className="space-y-5 px-8 pb-10">
+          {!usingSample && (
+            <EmptyWorkspace
+              title="Your plant workspace is empty"
+              description="No devices or alerts yet. Set your plant identity in Settings, then connect machines or load example data."
+            />
+          )}
+
           <StaggerChildren className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StaggerItem>
               <KpiCard
                 label="Energy Cost Today"
-                value={kpis.energyCostToday}
+                value={usingSample ? kpis.energyCostToday : 0}
                 prefix="$"
-                delta={8}
-                deltaLabel="% vs yesterday"
+                delta={usingSample ? 8 : 0}
+                deltaLabel={usingSample ? "% vs yesterday" : "awaiting telemetry"}
                 positiveIsGood={false}
                 icon={Zap}
               />
@@ -38,22 +51,22 @@ export default function OverviewPage() {
             <StaggerItem>
               <KpiCard
                 label="Production Efficiency"
-                value={kpis.productionEfficiency}
+                value={usingSample ? kpis.productionEfficiency : 0}
                 decimals={1}
                 suffix="%"
-                delta={5.1}
-                deltaLabel="% this week"
+                delta={usingSample ? 5.1 : 0}
+                deltaLabel={usingSample ? "% this week" : "awaiting telemetry"}
                 icon={Gauge}
               />
             </StaggerItem>
             <StaggerItem>
               <KpiCard
                 label="Total Downtime"
-                value={kpis.totalDowntimeHours}
+                value={usingSample ? kpis.totalDowntimeHours : 0}
                 decimals={1}
                 suffix=" hrs"
-                delta={0.3}
-                deltaLabel="hrs vs average"
+                delta={usingSample ? 0.3 : 0}
+                deltaLabel={usingSample ? "hrs vs average" : "no events"}
                 positiveIsGood={false}
                 icon={Clock}
               />
@@ -61,10 +74,10 @@ export default function OverviewPage() {
             <StaggerItem>
               <KpiCard
                 label="Est. Downtime Cost"
-                value={ROI.costTodayRm}
+                value={usingSample ? ROI.costTodayRm : 0}
                 prefix="RM "
-                delta={18}
-                deltaLabel="min avg response"
+                delta={usingSample ? 18 : 0}
+                deltaLabel={usingSample ? "min avg response" : "no events"}
                 positiveIsGood={false}
                 icon={BadgeDollarSign}
               />
@@ -108,7 +121,7 @@ export default function OverviewPage() {
                     </div>
                   </div>
                   <div className="text-[12px] text-[var(--text-muted)] tabular">
-                    {formatRm(ROI.costTodayRm)}
+                    {usingSample ? formatRm(ROI.costTodayRm) : "—"}
                   </div>
                 </Link>
               ))}

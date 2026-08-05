@@ -47,7 +47,7 @@ export default function LandingPage() {
         >
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-1.5 text-[12px] text-[var(--text-secondary)] shadow-[var(--shadow-card)]">
             <BrandLogo size={18} />
-            Apex Precision · Shah Alam Plant 2
+            Built for plant Ops and Maintenance
           </div>
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
             Downtime response and signed shift handoffs
@@ -65,10 +65,10 @@ export default function LandingPage() {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/login?next=/analytics"
+              href="/login?next=/overview"
               className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-5 py-2.5 text-[14px] hover:bg-[var(--bg-hover)]"
             >
-              Sign in to analytics
+              Sign in
             </Link>
           </div>
         </motion.div>
@@ -140,7 +140,7 @@ export default function LandingPage() {
           <p className="mt-3 max-w-3xl text-[14px] leading-relaxed text-[var(--text-secondary)]">
             Downtime is found at shift end. Energy spikes hide until finance closes the month.
             Handoffs live in WhatsApp. Vendors dispute SLA claims with no single trusted record.
-            Vectra gives Apex Precision one live console for efficiency, energy, downtime, and
+            Vectra gives each plant one live console for efficiency, energy, downtime, and
             signed maintenance handoffs.
           </p>
         </motion.div>

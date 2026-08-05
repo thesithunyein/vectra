@@ -31,40 +31,72 @@ Open Authentication providers:
 - Keep **Email** enabled
 - Confirm email can stay ON for production (or turn off Confirm email for faster testing)
 
-## 4. Enable Google (recommended for judges + real users)
+## 4. Enable Google (recommended — also unlocks Gmail photo)
 
 Same providers page → **Google** → Enable
 
-You need Google Cloud OAuth credentials:
+Your Supabase project: `ahaousuahjwavkmaezdu`  
+Callback URL you must paste into Google:
 
-1. Open Google Cloud Console credentials:  
-   [https://console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials)
-2. Create **OAuth client ID** → Web application
-3. Authorized JavaScript origins:
+`https://ahaousuahjwavkmaezdu.supabase.co/auth/v1/callback`
+
+### Step A — Google Cloud
+
+1. Open [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials)
+2. Create project (or pick one) → **Create credentials** → **OAuth client ID**
+3. If asked, configure OAuth consent screen (External, app name `Vectra`, your email)
+4. Application type: **Web application**
+5. Name: `Vectra`
+6. **Authorized JavaScript origins**
    - `http://localhost:3000`
-   - `https://vectra-app-khaki.vercel.app`
-   - Your Supabase URL, e.g. `https://YOUR_PROJECT.supabase.co`
-4. Authorized redirect URIs (important):
-   - `https://YOUR_PROJECT.supabase.co/auth/v1/callback`
-5. Copy Client ID + Client Secret into Supabase Google provider settings
-6. Save
+   - `https://vectra.sithunyein.com`
+7. **Authorized redirect URIs**
+   - `https://ahaousuahjwavkmaezdu.supabase.co/auth/v1/callback`
+8. Create → copy **Client ID** and **Client Secret**
 
-Supabase Google docs:  
-[https://supabase.com/docs/guides/auth/social-login/auth-google](https://supabase.com/docs/guides/auth/social-login/auth-google)
+### Step B — Supabase
+
+1. Open [Auth → Providers → Google](https://supabase.com/dashboard/project/ahaousuahjwavkmaezdu/auth/providers)
+2. Enable Google
+3. Paste Client ID + Client Secret
+4. Save
+
+### Step C — Test
+
+1. Open https://vectra.sithunyein.com/login
+2. Click **Continue with Google**
+3. Top bar should show your **Gmail name + profile photo** (not initials)
+
+Email/password accounts never get a Google photo — that is expected.
+
+### Fix: `Unable to exchange external code`
+
+This error means Google returned a code, but **Supabase could not trade it for tokens**. Almost always credentials / redirect mismatch.
+
+Checklist (do in order):
+
+1. Google Cloud OAuth client type must be **Web application** (not Desktop / iOS / Android).
+2. Google **Authorized redirect URIs** must include **exactly**:
+   `https://ahaousuahjwavkmaezdu.supabase.co/auth/v1/callback`
+   - Do **not** put `https://vectra.sithunyein.com/auth/callback` here.
+3. In Supabase → Auth → Providers → Google:
+   - Paste the **same** Client ID and Client Secret from that Web client
+   - If you regenerated the secret in Google, paste the new secret again
+4. Save Supabase Google provider, wait ~10s, retry Google sign-in in a fresh tab (or clear site cookies for vectra.sithunyein.com).
+5. Confirm Site URL is `https://vectra.sithunyein.com` and Redirect URLs include `https://vectra.sithunyein.com/auth/callback`.
 
 ## 5. Add redirect URLs in Supabase
 
 Open: [https://supabase.com/dashboard/project/_/auth/url-configuration](https://supabase.com/dashboard/project/_/auth/url-configuration)
 
-Site URL:
+Site URL (prod):
 
-- Local: `http://localhost:3000`
-- Prod: `https://vectra-app-khaki.vercel.app`
+- `https://vectra.sithunyein.com`
 
 Redirect URLs allow list:
 
 - `http://localhost:3000/auth/callback`
-- `https://vectra-app-khaki.vercel.app/auth/callback`
+- `https://vectra.sithunyein.com/auth/callback`
 
 ## 6. Add env vars
 

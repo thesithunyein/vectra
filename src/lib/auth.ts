@@ -1,4 +1,6 @@
 import type { User } from "@supabase/supabase-js";
+import type { WorkspacePrefs } from "@/lib/workspace";
+import { EMPTY_WORKSPACE } from "@/lib/workspace";
 
 export type AppUser = {
   id: string;
@@ -12,14 +14,10 @@ export type AppUser = {
   avatarUrl?: string | null;
 };
 
-export const PLANT_DEFAULTS = {
-  plant: "Apex Precision",
-  plantSite: "Shah Alam Plant 2",
-  shift: "Day shift",
-  role: "Ops Lead",
-} as const;
-
-export function userFromSupabase(user: User): AppUser {
+export function userFromSupabase(
+  user: User,
+  workspace: WorkspacePrefs = EMPTY_WORKSPACE
+): AppUser {
   const meta = user.user_metadata ?? {};
   const name =
     (meta.full_name as string) ||
@@ -37,11 +35,11 @@ export function userFromSupabase(user: User): AppUser {
     id: user.id,
     name,
     email: user.email ?? "",
-    role: PLANT_DEFAULTS.role,
+    role: workspace.role,
     initials,
-    plant: PLANT_DEFAULTS.plant,
-    plantSite: PLANT_DEFAULTS.plantSite,
-    shift: PLANT_DEFAULTS.shift,
+    plant: workspace.plant,
+    plantSite: workspace.plantSite,
+    shift: workspace.shift,
     avatarUrl: (meta.avatar_url as string) || (meta.picture as string) || null,
   };
 }

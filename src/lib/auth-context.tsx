@@ -13,6 +13,11 @@ import { usePathname, useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { userFromSupabase, type AppUser } from "@/lib/auth";
+import {
+  loadWorkspace,
+  saveWorkspace,
+  type WorkspacePrefs,
+} from "@/lib/workspace";
 
 type AuthContextValue = {
   session: Session | null;
@@ -20,9 +25,16 @@ type AuthContextValue = {
   ready: boolean;
   configured: boolean;
   signOut: () => Promise<void>;
+  updateWorkspace: (patch: Partial<WorkspacePrefs>) => void;
+  refreshWorkspace: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+function mapUser(session: Session | null): AppUser | null {
+  if (!session?.user) return null;
+  return userFromSupabase(session.user, loadWorkspace(session.user.id));
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -38,6 +50,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const refreshWorkspace = useCallback(() => {
+    setUser(mapUser(session));
+  }, [session]);
+
+  const updateWorkspace = useCallback(
+    (patch: Partial<WorkspacePrefs>) => {
+      if (!session?.user) return;
+      saveWorkspace(session.user.id, patch);
+      setUser(userFromSupabase(session.user, loadWorkspace(session.user.id)));
+    },
+    [session]
+  );
+
   useEffect(() => {
     if (!configured) {
       setReady(true);
@@ -48,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
-      setUser(data.session?.user ? userFromSupabase(data.session.user) : null);
+      setUser(mapUser(data.session));
       setReady(true);
     });
 
@@ -56,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
-      setUser(nextSession?.user ? userFromSupabase(nextSession.user) : null);
+      setUser(mapUser(nextSession));
     });
 
     return () => subscription.unsubscribe();
@@ -82,8 +107,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [configured, router]);
 
   const value = useMemo(
-    () => ({ session, user, ready, configured, signOut }),
-    [session, user, ready, configured, signOut]
+    () => ({
+      session,
+      user,
+      ready,
+      configured,
+      signOut,
+      updateWorkspace,
+      refreshWorkspace,
+    }),
+    [session, user, ready, configured, signOut, updateWorkspace, refreshWorkspace]
   );
 
   if (!ready) {

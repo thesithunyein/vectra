@@ -2,10 +2,19 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+
+function oauthErrorMessage(raw: string | null) {
+  if (!raw) return "";
+  const text = decodeURIComponent(raw.replace(/\+/g, " "));
+  if (/unable to exchange external code/i.test(text)) {
+    return "Google sign-in failed: Supabase could not exchange Google’s code. Check Google Client ID/Secret and that the Google redirect URI is exactly https://ahaousuahjwavkmaezdu.supabase.co/auth/v1/callback";
+  }
+  return text;
+}
 
 function LoginForm() {
   const router = useRouter();
@@ -26,6 +35,28 @@ function LoginForm() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fromQuery = searchParams.get("error_description") || searchParams.get("error");
+    if (fromQuery && fromQuery !== "auth") {
+      setError(oauthErrorMessage(fromQuery));
+      return;
+    }
+    if (typeof window === "undefined") return;
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const fromHash =
+      hash.get("error_description") || hash.get("error_code") || hash.get("error");
+    if (fromHash) {
+      setError(oauthErrorMessage(fromHash));
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      return;
+    }
+    if (searchParams.get("error") === "auth") {
+      setError(
+        "Google sign-in failed. Most common cause: wrong Google Client Secret in Supabase, or redirect URI not set to https://ahaousuahjwavkmaezdu.supabase.co/auth/v1/callback"
+      );
+    }
+  }, [searchParams]);
 
   function redirectBase() {
     if (typeof window !== "undefined") return window.location.origin;
@@ -141,9 +172,6 @@ function LoginForm() {
         <h1 className="text-[22px] font-semibold">
           {mode === "signin" ? "Sign in to your plant" : "Create your plant account"}
         </h1>
-        <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
-          Real accounts for Ops Leads and Maintenance teams. Use Google or work email.
-        </p>
 
         <button
           type="button"

@@ -2,20 +2,27 @@
 
 import { TopBar } from "@/components/layout/TopBar";
 import { PageTransition } from "@/components/motion/PageTransition";
+import { EmptyWorkspace } from "@/components/EmptyWorkspace";
 import { useStore } from "@/lib/store";
-import { initialDevices } from "@/lib/seed";
 import clsx from "clsx";
 
 export default function AlertsPage() {
-  const { alerts, acknowledgeAlert, assignAlert, resolveAlert } = useStore();
+  const { alerts, devices, usingSample, acknowledgeAlert, assignAlert, resolveAlert } =
+    useStore();
 
   return (
     <>
       <TopBar title="Alerts" subtitle="Act on faults. Early warnings include baseline drift." />
       <PageTransition>
         <div className="space-y-3 px-8 pb-10">
+          {!usingSample && alerts.length === 0 && (
+            <EmptyWorkspace
+              title="No alerts"
+              description="Your inbox is clear. Alerts appear here when machines drift or go down."
+            />
+          )}
           {alerts.map((a) => {
-            const device = initialDevices.find((d) => d.id === a.deviceId);
+            const device = devices.find((d) => d.id === a.deviceId);
             return (
               <div key={a.id} className="card p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">
@@ -42,7 +49,7 @@ export default function AlertsPage() {
                       </span>
                     </div>
                     <p className="mt-1 text-[13px] text-[var(--text-muted)]">
-                      {device?.name} · {device?.line}
+                      {device?.name ?? "Unknown"} · {device?.line ?? "—"}
                       {a.assignedTo ? ` · Assigned to ${a.assignedTo}` : ""}
                     </p>
                     {a.driftReason && (
@@ -55,21 +62,24 @@ export default function AlertsPage() {
                     {a.status === "open" && (
                       <>
                         <button
+                          type="button"
                           onClick={() => acknowledgeAlert(a.id)}
                           className="rounded-lg border border-[var(--border-subtle)] px-3 py-1.5 text-[12px] hover:bg-white/[0.04]"
                         >
                           Acknowledge
                         </button>
                         <button
+                          type="button"
                           onClick={() => assignAlert(a.id)}
                           className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-[12px] font-medium text-white hover:brightness-110"
                         >
-                          Assign to maintenance
+                          Assign to me
                         </button>
                       </>
                     )}
                     {a.status !== "resolved" && (
                       <button
+                        type="button"
                         onClick={() => resolveAlert(a.id)}
                         className="rounded-lg border border-[var(--border-subtle)] px-3 py-1.5 text-[12px] hover:bg-white/[0.04]"
                       >

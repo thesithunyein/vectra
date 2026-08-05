@@ -12,11 +12,11 @@ import {
   FileCheck,
   FileBarChart,
   LogOut,
+  Settings,
 } from "lucide-react";
 import clsx from "clsx";
 import { useAuth } from "@/lib/auth-context";
 import { BrandLogo } from "@/components/BrandLogo";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const nav = [
   { href: "/overview", label: "Overview", icon: LayoutDashboard },
@@ -26,6 +26,7 @@ const nav = [
   { href: "/maintenance", label: "Maintenance", icon: Wrench },
   { href: "/records", label: "Records", icon: FileCheck },
   { href: "/reports", label: "Reports", icon: FileBarChart },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function Sidebar() {
@@ -44,9 +45,9 @@ export function Sidebar() {
 
       <div className="mx-3 mb-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2.5">
         <div className="text-[11px] text-[var(--text-muted)]">Plant workspace</div>
-        <div className="text-[13px] font-medium">{user?.plant ?? "Apex Precision"}</div>
+        <div className="text-[13px] font-medium">{user?.plant ?? "My plant"}</div>
         <div className="text-[11px] text-[var(--text-secondary)]">
-          {user?.plantSite ?? "Shah Alam Plant 2"}
+          {user?.plantSite ?? "Site not set"}
         </div>
       </div>
 
@@ -80,13 +81,11 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-[var(--border-subtle)] p-3">
-        <div className="mb-2 flex items-center justify-between px-1">
-          <div className="px-2 text-[11px] text-[var(--text-muted)]">
-            {user ? `${user.name} · ${user.role}` : "Signed out"}
-          </div>
-          <ThemeToggle />
+        <div className="mb-2 px-3 text-[11px] text-[var(--text-muted)]">
+          {user ? `${user.name} · ${user.role}` : "Signed out"}
         </div>
         <button
+          type="button"
           onClick={() => signOut()}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
         >

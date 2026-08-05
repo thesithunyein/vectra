@@ -1,17 +1,33 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Bell, Search, Settings, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth-context";
-import { PLANT_DEFAULTS } from "@/lib/auth";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export function TopBar({ title, subtitle }: { title: string; subtitle: string }) {
   const { alerts } = useStore();
   const { user, signOut } = useAuth();
-  const [open, setOpen] = useState(false);
-  const unread = alerts.filter((a) => a.status === "open").length;
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [bellOpen, setBellOpen] = useState(false);
+  const bellRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const openAlerts = alerts.filter((a) => a.status === "open");
+  const unread = openAlerts.length;
+
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      const t = e.target as Node;
+      if (bellRef.current && !bellRef.current.contains(t)) setBellOpen(false);
+      if (menuRef.current && !menuRef.current.contains(t)) setMenuOpen(false);
+    }
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
 
   if (!user) return null;
 
@@ -37,18 +53,77 @@ export function TopBar({ title, subtitle }: { title: string; subtitle: string })
         </div>
         <div className="flex items-center gap-1.5">
           <ThemeToggle />
-          <button className="relative rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">
-            <Bell className="h-[18px] w-[18px]" strokeWidth={1.5} />
-            {unread > 0 && (
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[var(--danger)]" />
+          <div className="relative" ref={bellRef}>
+            <button
+              type="button"
+              aria-label="Notifications"
+              onClick={() => {
+                setBellOpen((v) => !v);
+                setMenuOpen(false);
+              }}
+              className="relative rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
+            >
+              <Bell className="h-[18px] w-[18px]" strokeWidth={1.5} />
+              {unread > 0 && (
+                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[var(--danger)]" />
+              )}
+            </button>
+            {bellOpen && (
+              <div className="absolute right-0 mt-2 w-80 rounded-xl border border-[var(--border-strong)] bg-[var(--bg-card)] p-3 shadow-2xl">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="text-[13px] font-medium">Notifications</div>
+                  <span className="text-[11px] text-[var(--text-muted)]">{unread} open</span>
+                </div>
+                {openAlerts.length === 0 ? (
+                  <p className="py-4 text-center text-[12px] text-[var(--text-muted)]">
+                    No open alerts
+                  </p>
+                ) : (
+                  <div className="max-h-64 space-y-2 overflow-auto">
+                    {openAlerts.slice(0, 5).map((a) => (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => {
+                          setBellOpen(false);
+                          router.push("/alerts");
+                        }}
+                        className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-3 text-left hover:border-[var(--border-strong)]"
+                      >
+                        <div className="text-[12px] font-medium">{a.title}</div>
+                        <div className="mt-1 text-[11px] capitalize text-[var(--text-muted)]">
+                          {a.severity}
+                          {a.driftDetected ? " · Early warning" : ""}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <Link
+                  href="/alerts"
+                  onClick={() => setBellOpen(false)}
+                  className="mt-3 block text-center text-[12px] text-[var(--accent)] hover:underline"
+                >
+                  Open alerts
+                </Link>
+              </div>
             )}
-          </button>
-          <button className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]">
+          </div>
+          <button
+            type="button"
+            aria-label="Settings"
+            onClick={() => router.push("/settings")}
+            className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
+          >
             <Settings className="h-[18px] w-[18px]" strokeWidth={1.5} />
           </button>
-          <div className="relative">
+          <div className="relative" ref={menuRef}>
             <button
-              onClick={() => setOpen((v) => !v)}
+              type="button"
+              onClick={() => {
+                setMenuOpen((v) => !v);
+                setBellOpen(false);
+              }}
               className="ml-1 flex items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] py-1 pl-1 pr-2 hover:border-[var(--border-strong)]"
             >
               {user.avatarUrl ? (
@@ -56,6 +131,7 @@ export function TopBar({ title, subtitle }: { title: string; subtitle: string })
                 <img
                   src={user.avatarUrl}
                   alt={user.name}
+                  referrerPolicy="no-referrer"
                   className="h-8 w-8 rounded-full object-cover"
                 />
               ) : (
@@ -69,7 +145,7 @@ export function TopBar({ title, subtitle }: { title: string; subtitle: string })
               </div>
               <ChevronDown className="h-3.5 w-3.5 text-[var(--text-muted)]" />
             </button>
-            {open && (
+            {menuOpen && (
               <div className="absolute right-0 mt-2 w-64 rounded-xl border border-[var(--border-strong)] bg-[var(--bg-card)] p-3 shadow-2xl">
                 <div className="text-[13px] font-medium">{user.name}</div>
                 <div className="text-[12px] text-[var(--text-secondary)]">{user.role}</div>
@@ -77,12 +153,25 @@ export function TopBar({ title, subtitle }: { title: string; subtitle: string })
                 <div className="mt-2 border-t border-[var(--border-subtle)] pt-2 text-[12px] text-[var(--text-muted)]">
                   {user.plant} · {user.plantSite}
                 </div>
-                <div className="mt-1 text-[11px] text-[var(--text-muted)]">
-                  Default plant template: {PLANT_DEFAULTS.plant}
-                </div>
+                {!user.avatarUrl && (
+                  <p className="mt-2 text-[11px] text-[var(--text-muted)]">
+                    Profile photo appears with Google sign-in.
+                  </p>
+                )}
                 <button
-                  onClick={() => signOut()}
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    router.push("/settings");
+                  }}
                   className="mt-3 w-full rounded-lg border border-[var(--border-subtle)] px-3 py-2 text-[12px] hover:bg-[var(--bg-hover)]"
+                >
+                  Workspace settings
+                </button>
+                <button
+                  type="button"
+                  onClick={() => signOut()}
+                  className="mt-2 w-full rounded-lg border border-[var(--border-subtle)] px-3 py-2 text-[12px] hover:bg-[var(--bg-hover)]"
                 >
                   Sign out
                 </button>

@@ -1,59 +1,131 @@
-# Vectra
-
 <p align="center">
-  <img src="public/logo.png" alt="Vectra" width="72" height="72" />
+  <img src="public/logo.png" alt="Vectra" width="80" height="80" />
 </p>
 
-**Vectra** · Industrial Monitoring
+<h1 align="center">Vectra</h1>
 
-Live ops console for manufacturing plants. Respond to downtime fast and leave signed shift handoffs crews and vendors can trust.
+<p align="center">
+  <strong>Industrial Monitoring</strong><br />
+  Downtime response and signed shift handoffs for manufacturing plants.
+</p>
 
-## Product
+<p align="center">
+  <img alt="Integrity" src="https://img.shields.io/badge/Integrity-sealed%20records-0066FF?style=flat-square" />
+  <img alt="Auth" src="https://img.shields.io/badge/Auth-Google%20%2B%20Email-111827?style=flat-square" />
+  <img alt="Stack" src="https://img.shields.io/badge/Stack-Next.js%20·%20Supabase-0A0A0A?style=flat-square" />
+  <img alt="Status" src="https://img.shields.io/badge/Status-Live-10B981?style=flat-square" />
+</p>
 
-- Live ops console (Overview, Devices, Alerts, Analytics)
-- Early warning alerts from baseline drift
-- Maintenance close with reason codes
-- Signed records with integrity check
-- Weekly report export
-- Dark / light mode
+<p align="center">
+  <a href="https://vectra.sithunyein.com"><strong>Live product →</strong></a>
+  ·
+  <a href="https://vectra.sithunyein.com/login">Sign in</a>
+</p>
 
-Built for plant teams. No wallet steps.
+---
+
+## Why Vectra
+
+Plant teams lose time when downtime is found late and handoffs live in chat threads. Vectra gives Ops and Maintenance one console to:
+
+- Catch **early warnings** from line baseline drift  
+- Close jobs with reason codes  
+- Seal **signed records** with an integrity fingerprint the next shift can verify  
+
+Real users sign in with **Google** or work email. New workspaces start empty. Example plant data is optional for walkthroughs before machines are connected.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  subgraph Users
+    U[Ops / Maintenance]
+  end
+
+  subgraph Vectra
+    A[Auth<br/>Google · Email]
+    C[Live console]
+    M[Maintenance close]
+    R[Signed records]
+  end
+
+  subgraph Trust
+    S[Integrity seal]
+  end
+
+  U --> A --> C
+  C -->|Early warning| M
+  M -->|Close & sign| R
+  R --> S
+  S -->|Verify handoff| U
+```
+
+## Product loop
+
+```mermaid
+sequenceDiagram
+  participant Line as Plant line
+  participant Vectra as Vectra
+  participant User as Signed-in user
+  participant Night as Next shift / vendor
+
+  Line->>Vectra: Baseline drift signal
+  Vectra->>User: Early warning alert
+  User->>Vectra: Assign / close maintenance
+  Vectra->>Vectra: Seal record under user name
+  Night->>Vectra: Open Records · integrity check
+```
+
+## Features
+
+| Area | What you get |
+|------|----------------|
+| Overview | Shift board, KPIs, open critical alerts |
+| Devices | Machine and line status |
+| Alerts | Acknowledge, assign, resolve · early warning tags |
+| Analytics | Efficiency, energy, downtime views |
+| Maintenance | Close with reason · seals a record |
+| Records | Signed handoffs + integrity check |
+| Reports | Weekly CSV export |
+| Settings | Plant identity, theme, example dataset |
 
 ## Stack
 
-- Next.js · TypeScript · Tailwind
-- Recharts · Lucide · Framer Motion
+- **App:** Next.js · TypeScript · Tailwind · Recharts · Framer Motion  
+- **Auth:** Supabase Auth (Google OAuth + email/password)  
+- **Deploy:** Vercel · [vectra.sithunyein.com](https://vectra.sithunyein.com)
 
-## Live
-
-- **Product:** [https://vectra-app-khaki.vercel.app](https://vectra-app-khaki.vercel.app)
-- **GitHub:** [https://github.com/thesithunyein/vectra](https://github.com/thesithunyein/vectra)
-
-Sign in with **Google** or create an email account (Supabase Auth). See [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md).
-
-App pages require a real signed-in user. Your name and email appear in the top bar.
-
-## Run locally
+## Quick start
 
 ```bash
-cd C:\Users\sithu\Projects\vectra-app
+git clone https://github.com/thesithunyein/vectra.git
+cd vectra
 npm install
+cp .env.example .env.local   # if present; or set vars below
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+Required env:
 
-## Core loop
+```bash
+NEXT_PUBLIC_APP_NAME=Vectra
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+```
 
-1. Overview: open critical alert + downtime cost
-2. Alerts: Early warning on AOI-01
-3. Maintenance: Close & sign record
-4. Records: Signed record with integrity check passed
-5. Reports: Export weekly CSV
+Auth setup: [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md)
+
+## Links
+
+| | |
+|--|--|
+| Product | https://vectra.sithunyein.com |
+| Repository | https://github.com/thesithunyein/vectra |
 
 ## Brand
 
-- Product: **Vectra**
-- Subtitle: **Industrial Monitoring**
-- Logo: blue mark with white geometric A (`public/logo.png`)
-- Accent: `#0066FF`
+- **Name:** Vectra  
+- **Subtitle:** Industrial Monitoring  
+- **Mark:** `public/logo.png`  
+- **Accent:** `#0066FF`
