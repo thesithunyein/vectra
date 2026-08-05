@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Bell, ShieldCheck, Wrench } from "lucide-react";
+import { ExternalLink, ShieldCheck, Sparkles, Wrench } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
 import { PageTransition } from "@/components/motion/PageTransition";
 import { EmptyWorkspace } from "@/components/EmptyWorkspace";
@@ -9,19 +9,19 @@ import { useStore } from "@/lib/store";
 
 const STEPS = [
   {
-    icon: Bell,
-    title: "1. Early warning",
-    body: "Baseline drift opens an alert with a clear reason — humans decide the next action.",
+    icon: Sparkles,
+    title: "1. AI brief",
+    body: "Early warning opens an alert. AI drafts what’s wrong and the next action — humans decide.",
   },
   {
     icon: Wrench,
     title: "2. Close the job",
-    body: "Maintenance closes downtime with a reason code. No spreadsheets or WhatsApp threads.",
+    body: "Maintenance closes downtime with a reason code under the signed-in user’s name.",
   },
   {
     icon: ShieldCheck,
-    title: "3. Signed handoff",
-    body: "Closure seals under the signed-in user’s name. Night shift and vendors verify integrity here.",
+    title: "3. Seal + attest",
+    body: "Integrity fingerprint is checked locally, then anchored on Solana so night shift can verify.",
   },
 ];
 
@@ -32,7 +32,7 @@ export default function RecordsPage() {
     <>
       <TopBar
         title="Records"
-        subtitle="Signed handoffs for shift crews and vendors. Integrity checked."
+        subtitle="Signed handoffs with integrity seals and optional on-chain attestation."
       />
       <PageTransition>
         <div className="space-y-5 px-8 pb-10">
@@ -41,12 +41,12 @@ export default function RecordsPage() {
               <div>
                 <h3 className="text-[15px] font-medium">How it works</h3>
                 <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
-                  Industrial 5.0 trust loop — human judgment, machine signal, durable record.
+                  Industrial 5.0 · AI assists · Web3 attests · humans stay in control.
                 </p>
               </div>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] text-emerald-400">
                 <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.5} />
-                Integrity seal on every close
+                Integrity + Solana memo
               </span>
             </div>
             <div className="grid gap-3 md:grid-cols-3">
@@ -66,15 +66,15 @@ export default function RecordsPage() {
               ))}
             </div>
             <p className="mt-4 text-[12px] text-[var(--text-muted)]">
-              Each seal binds maintenance ID, machine, reason, sealed-by name, and timestamp into an
-              integrity fingerprint. If any field is altered, the check fails.
+              Each close binds maintenance ID, machine, reason, sealed-by, and time into a fingerprint.
+              The hash is written to a Solana memo transaction for public verification.
             </p>
           </div>
 
           {!usingSample && records.length === 0 && (
             <EmptyWorkspace
               title="No signed records yet"
-              description="Closing a maintenance job seals a record under your name."
+              description="Closing a maintenance job seals a record under your name and attests the hash on-chain."
             />
           )}
           {(usingSample || records.length > 0) && (
@@ -86,8 +86,8 @@ export default function RecordsPage() {
                     <th className="px-5 py-3 font-medium">Event</th>
                     <th className="px-5 py-3 font-medium">Machine</th>
                     <th className="px-5 py-3 font-medium">Sealed by</th>
-                    <th className="px-5 py-3 font-medium">Time</th>
                     <th className="px-5 py-3 font-medium">Integrity</th>
+                    <th className="px-5 py-3 font-medium">On-chain</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -105,14 +105,33 @@ export default function RecordsPage() {
                       <td className="px-5 py-4">{r.eventType}</td>
                       <td className="px-5 py-4 text-[var(--text-secondary)]">{r.deviceName}</td>
                       <td className="px-5 py-4">{r.sealedBy}</td>
-                      <td className="px-5 py-4 text-[var(--text-secondary)] tabular">
-                        {new Date(r.sealedAt).toLocaleString()}
+                      <td className="px-5 py-4">
+                        <div className="space-y-1">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[12px] text-emerald-400">
+                            <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.5} />
+                            {r.integrityPassed ? "Passed" : "Failed"}
+                          </span>
+                          {r.integrityHash && (
+                            <div className="font-mono text-[10px] text-[var(--text-muted)]">
+                              {r.integrityHash}
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="px-5 py-4">
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[12px] text-emerald-400">
-                          <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.5} />
-                          {r.integrityPassed ? "Integrity check passed" : "Failed"}
-                        </span>
+                        {r.chainExplorerUrl ? (
+                          <a
+                            href={r.chainExplorerUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-[12px] text-[var(--accent)] hover:underline"
+                          >
+                            View proof
+                            <ExternalLink className="h-3 w-3" strokeWidth={1.5} />
+                          </a>
+                        ) : (
+                          <span className="text-[12px] text-[var(--text-muted)]">Local only</span>
+                        )}
                       </td>
                     </motion.tr>
                   ))}

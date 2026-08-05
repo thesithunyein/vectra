@@ -33,7 +33,7 @@ interface Store {
   acknowledgeAlert: (id: string) => void;
   assignAlert: (id: string) => void;
   resolveAlert: (id: string) => void;
-  closeMaintenance: (id: string, sealedByName?: string) => void;
+  closeMaintenance: (id: string, sealedByName?: string) => Promise<void>;
   clearToast: () => void;
 }
 
@@ -125,14 +125,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const closeMaintenance = useCallback(
-    (id: string, sealedByName?: string) => {
+    async (id: string, sealedByName?: string) => {
       const event = maintenance.find((m) => m.id === id);
       if (!event || event.status === "closed") return;
 
       const device = devices.find((d) => d.id === event.deviceId);
       const sealedBy = sealedByName?.trim() || user?.name?.trim() || "Plant user";
       const sealedAt = new Date().toISOString();
-      const hash = sealRecord({
+      const integrityHash = sealRecord({
         maintenanceId: id,
         device: device?.name ?? "Unknown",
         reason: event.reason,
@@ -148,18 +148,62 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         )
       );
 
+      const recordId = nextRecordId(records.length);
+      let chainSignature: string | undefined;
+      let chainExplorerUrl: string | undefined;
+      let chainCluster: string | undefined;
+      let chainError: string | undefined;
+
+      setToast(`Sealing ${recordId}…`);
+
+      try {
+        const res = await fetch("/api/records/attest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sealHash: integrityHash,
+            recordId,
+            sealedBy,
+            deviceName: device?.name ?? "Unknown",
+            reason: event.reason,
+          }),
+        });
+        const data = (await res.json()) as {
+          signature?: string;
+          explorerUrl?: string;
+          cluster?: string;
+          error?: string;
+        };
+        if (res.ok && data.signature) {
+          chainSignature = data.signature;
+          chainExplorerUrl = data.explorerUrl;
+          chainCluster = data.cluster;
+        } else {
+          chainError = data.error || "Chain attest skipped";
+        }
+      } catch {
+        chainError = "Chain attest unavailable";
+      }
+
       const record: SignedRecord = {
-        id: nextRecordId(records.length),
+        id: recordId,
         eventType: "Maintenance closed",
         deviceName: device?.name ?? "Unknown",
         sealedBy,
         sealedAt,
         integrityPassed: true,
         maintenanceId: id,
+        integrityHash,
+        chainSignature,
+        chainExplorerUrl,
+        chainCluster,
       };
-      void hash;
       setRecords((prev) => [record, ...prev]);
-      setToast(`Signed record created · ${record.id}`);
+      if (chainSignature) {
+        setToast(`Signed + attested on Solana · ${record.id}`);
+      } else {
+        setToast(`Signed record · ${record.id}${chainError ? ` (${chainError})` : ""}`);
+      }
     },
     [devices, maintenance, records.length, user?.name]
   );

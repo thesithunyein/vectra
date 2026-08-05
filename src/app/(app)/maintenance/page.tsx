@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { TopBar } from "@/components/layout/TopBar";
 import { PageTransition } from "@/components/motion/PageTransition";
 import { EmptyWorkspace } from "@/components/EmptyWorkspace";
@@ -10,12 +11,22 @@ import clsx from "clsx";
 export default function MaintenancePage() {
   const { maintenance, devices, usingSample, closeMaintenance } = useStore();
   const { user } = useAuth();
+  const [sealingId, setSealingId] = useState<string | null>(null);
+
+  async function onClose(id: string) {
+    setSealingId(id);
+    try {
+      await closeMaintenance(id, user?.name);
+    } finally {
+      setSealingId(null);
+    }
+  }
 
   return (
     <>
       <TopBar
         title="Maintenance"
-        subtitle="Close work with reason codes. Closing seals a signed record."
+        subtitle="Close work with reason codes. Seals a signed record and attests the hash on Solana."
       />
       <PageTransition>
         <div className="space-y-3 px-8 pb-10">
@@ -51,10 +62,11 @@ export default function MaintenancePage() {
                 {m.status === "open" ? (
                   <button
                     type="button"
-                    onClick={() => closeMaintenance(m.id, user?.name)}
-                    className="rounded-lg bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-white hover:brightness-110"
+                    disabled={sealingId === m.id}
+                    onClick={() => onClose(m.id)}
+                    className="rounded-lg bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-white hover:brightness-110 disabled:opacity-60"
                   >
-                    Close & sign record
+                    {sealingId === m.id ? "Sealing & attesting…" : "Close & sign record"}
                   </button>
                 ) : (
                   <span className="text-[13px] text-[var(--text-muted)]">

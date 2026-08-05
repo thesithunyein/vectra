@@ -43,6 +43,10 @@ export interface SignedRecord {
   sealedAt: string;
   integrityPassed: boolean;
   maintenanceId: string;
+  integrityHash?: string;
+  chainSignature?: string;
+  chainExplorerUrl?: string;
+  chainCluster?: string;
 }
 
 export interface KpiSnapshot {

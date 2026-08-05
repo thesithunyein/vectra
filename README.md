@@ -29,8 +29,9 @@
 Plant teams lose time when downtime is found late and handoffs live in chat threads. Vectra gives Ops and Maintenance one console to:
 
 - Catch **early warnings** from line baseline drift  
+- Draft an **AI brief** (what’s wrong, likely cause, next action) — humans still decide  
 - Close jobs with reason codes  
-- Seal **signed records** with an integrity fingerprint the next shift can verify  
+- Seal **signed records** and **attest the integrity hash on Solana** so the next shift can verify  
 
 Real users sign in with **Google** or work email. New workspaces start empty. Example plant data is optional for walkthroughs before machines are connected.
 
@@ -45,19 +46,22 @@ flowchart LR
   subgraph Vectra
     A[Auth<br/>Google · Email]
     C[Live console]
+    AI[AI alert brief]
     M[Maintenance close]
     R[Signed records]
   end
 
   subgraph Trust
     S[Integrity seal]
+    CH[Solana memo attest]
   end
 
   U --> A --> C
-  C -->|Early warning| M
+  C -->|Early warning| AI
+  AI --> M
   M -->|Close & sign| R
-  R --> S
-  S -->|Verify handoff| U
+  R --> S --> CH
+  CH -->|Verify handoff| U
 ```
 
 ## Product loop
@@ -82,10 +86,10 @@ sequenceDiagram
 |------|----------------|
 | Overview | Shift board, KPIs, open critical alerts |
 | Devices | Machine and line status |
-| Alerts | Acknowledge, assign, resolve · early warning tags |
+| Alerts | Acknowledge, assign, resolve · early warning · **AI brief** |
 | Analytics | Efficiency, energy, downtime views |
 | Maintenance | Close with reason · seals a record |
-| Records | Signed handoffs + integrity check |
+| Records | Signed handoffs · integrity check · **Solana proof link** |
 | Reports | Weekly CSV export |
 | Settings | Plant identity, theme, example dataset |
 
@@ -112,7 +116,12 @@ NEXT_PUBLIC_APP_NAME=Vectra
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+OPENAI_API_KEY=...                 # server only — AI briefs
+SOLANA_SECRET_KEY=[...]            # server only — JSON byte array keypair
+NEXT_PUBLIC_SOLANA_CLUSTER=devnet
 ```
+
+Fund the Solana attestation wallet on [devnet faucet](https://faucet.solana.com) before closing maintenance records.
 
 Auth setup: [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md)
 

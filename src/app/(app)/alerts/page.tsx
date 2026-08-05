@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { Sparkles } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
 import { PageTransition } from "@/components/motion/PageTransition";
 import { EmptyWorkspace } from "@/components/EmptyWorkspace";
@@ -9,10 +11,55 @@ import clsx from "clsx";
 export default function AlertsPage() {
   const { alerts, devices, usingSample, acknowledgeAlert, assignAlert, resolveAlert } =
     useStore();
+  const [briefs, setBriefs] = useState<Record<string, string>>({});
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [briefError, setBriefError] = useState<Record<string, string>>({});
+
+  async function generateBrief(alertId: string) {
+    const a = alerts.find((x) => x.id === alertId);
+    if (!a) return;
+    const device = devices.find((d) => d.id === a.deviceId);
+    setLoadingId(alertId);
+    setBriefError((prev) => ({ ...prev, [alertId]: "" }));
+    try {
+      const res = await fetch("/api/alerts/brief", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: a.title,
+          severity: a.severity,
+          status: a.status,
+          driftDetected: a.driftDetected,
+          driftReason: a.driftReason,
+          deviceName: device?.name,
+          line: device?.line,
+        }),
+      });
+      const data = (await res.json()) as { brief?: string; error?: string };
+      if (!res.ok || !data.brief) {
+        setBriefError((prev) => ({
+          ...prev,
+          [alertId]: data.error || "Could not generate brief",
+        }));
+        return;
+      }
+      setBriefs((prev) => ({ ...prev, [alertId]: data.brief! }));
+    } catch {
+      setBriefError((prev) => ({
+        ...prev,
+        [alertId]: "Could not reach AI brief service",
+      }));
+    } finally {
+      setLoadingId(null);
+    }
+  }
 
   return (
     <>
-      <TopBar title="Alerts" subtitle="Act on faults. Early warnings include baseline drift." />
+      <TopBar
+        title="Alerts"
+        subtitle="Act on faults. AI drafts a brief — humans still decide."
+      />
       <PageTransition>
         <div className="space-y-3 px-8 pb-10">
           {!usingSample && alerts.length === 0 && (
@@ -26,7 +73,7 @@ export default function AlertsPage() {
             return (
               <div key={a.id} className="card p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-[15px] font-medium">{a.title}</h3>
                       {a.driftDetected && (
@@ -57,8 +104,31 @@ export default function AlertsPage() {
                         {a.driftReason}
                       </p>
                     )}
+                    {briefs[a.id] && (
+                      <div className="mt-3 max-w-2xl rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-4">
+                        <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-[var(--accent)]">
+                          <Sparkles className="h-3.5 w-3.5" strokeWidth={1.5} />
+                          AI brief
+                        </div>
+                        <pre className="whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-[var(--text-secondary)]">
+                          {briefs[a.id]}
+                        </pre>
+                      </div>
+                    )}
+                    {briefError[a.id] && (
+                      <p className="mt-2 text-[12px] text-red-400">{briefError[a.id]}</p>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => generateBrief(a.id)}
+                      disabled={loadingId === a.id}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] px-3 py-1.5 text-[12px] hover:bg-white/[0.04] disabled:opacity-60"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" strokeWidth={1.5} />
+                      {loadingId === a.id ? "Drafting…" : "AI brief"}
+                    </button>
                     {a.status === "open" && (
                       <>
                         <button
