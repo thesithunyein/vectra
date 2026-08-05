@@ -26,7 +26,7 @@ interface Store {
   acknowledgeAlert: (id: string) => void;
   assignAlert: (id: string) => void;
   resolveAlert: (id: string) => void;
-  closeMaintenance: (id: string) => void;
+  closeMaintenance: (id: string, sealedByName?: string) => void;
   clearToast: () => void;
 }
 
@@ -64,12 +64,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setToast("Alert resolved");
   }, []);
 
-  const closeMaintenance = useCallback((id: string) => {
+  const closeMaintenance = useCallback((id: string, sealedByName?: string) => {
     const event = maintenance.find((m) => m.id === id);
     if (!event || event.status === "closed") return;
 
     const device = devices.find((d) => d.id === event.deviceId);
-    const sealedBy = "Raj Kumar";
+    const sealedBy = sealedByName?.trim() || "Plant user";
     const sealedAt = new Date().toISOString();
     const hash = sealRecord({
       maintenanceId: id,

@@ -29,7 +29,9 @@ Built for plant teams. No wallet steps.
 - **Product:** [https://vectra-app-khaki.vercel.app](https://vectra-app-khaki.vercel.app)
 - **GitHub:** [https://github.com/thesithunyein/vectra](https://github.com/thesithunyein/vectra)
 
-Sign in as **Farah Aziz** (Ops Lead) with work email `farah@apex-precision.my` to open the Apex Precision plant workspace. App pages require sign-in.
+Sign in with **Google** or create an email account (Supabase Auth). See [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md).
+
+App pages require a real signed-in user. Your name and email appear in the top bar.
 
 ## Run locally
 

@@ -6,18 +6,20 @@ import { TopBar } from "@/components/layout/TopBar";
 import { PageTransition, StaggerChildren, StaggerItem } from "@/components/motion/PageTransition";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { useStore } from "@/lib/store";
+import { useAuth } from "@/lib/auth-context";
 import { kpis, ROI, PLANT_NAME } from "@/lib/seed";
 import { formatRm } from "@/lib/format";
 
 export default function OverviewPage() {
   const { alerts } = useStore();
+  const { user } = useAuth();
   const open = alerts.filter((a) => a.status === "open");
 
   return (
     <>
       <TopBar
         title="Overview"
-        subtitle={`${PLANT_NAME} · live shift board for Farah Aziz (Ops Lead)`}
+        subtitle={`${PLANT_NAME} · live shift board for ${user?.name ?? "your team"}`}
       />
       <PageTransition>
         <div className="space-y-5 px-8 pb-10">

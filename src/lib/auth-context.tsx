@@ -10,61 +10,80 @@ import {
   type ReactNode,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  CURRENT_USER,
-  SESSION_KEY,
-  createSession,
-  type Session,
-} from "@/lib/auth";
+import type { Session } from "@supabase/supabase-js";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { userFromSupabase, type AppUser } from "@/lib/auth";
 
 type AuthContextValue = {
   session: Session | null;
+  user: AppUser | null;
   ready: boolean;
-  signIn: () => void;
-  signOut: () => void;
+  configured: boolean;
+  signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [ready, setReady] = useState(false);
+  const [configured] = useState(() => {
+    try {
+      return isSupabaseConfigured();
+    } catch {
+      return false;
+    }
+  });
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(SESSION_KEY);
-      if (raw) setSession(JSON.parse(raw) as Session);
-    } catch {
-      localStorage.removeItem(SESSION_KEY);
+    if (!configured) {
+      setReady(true);
+      return;
     }
-    setReady(true);
-  }, []);
+
+    const supabase = createClient();
+
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setUser(data.session?.user ? userFromSupabase(data.session.user) : null);
+      setReady(true);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      setUser(nextSession?.user ? userFromSupabase(nextSession.user) : null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [configured]);
 
   useEffect(() => {
     if (!ready) return;
-    if (!session && pathname !== "/login") {
+    if (!configured) return;
+    if (!session) {
       const next = encodeURIComponent(pathname);
       router.replace(`/login?next=${next}`);
     }
-  }, [ready, session, pathname, router]);
+  }, [ready, session, pathname, router, configured]);
 
-  const signIn = useCallback(() => {
-    const nextSession = createSession();
-    localStorage.setItem(SESSION_KEY, JSON.stringify(nextSession));
-    setSession(nextSession);
-  }, []);
-
-  const signOut = useCallback(() => {
-    localStorage.removeItem(SESSION_KEY);
+  const signOut = useCallback(async () => {
+    if (configured) {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    }
     setSession(null);
+    setUser(null);
     router.replace("/login");
-  }, [router]);
+  }, [configured, router]);
 
   const value = useMemo(
-    () => ({ session, ready, signIn, signOut }),
-    [session, ready, signIn, signOut]
+    () => ({ session, user, ready, configured, signOut }),
+    [session, user, ready, configured, signOut]
   );
 
   if (!ready) {
@@ -72,6 +91,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen items-center justify-center text-[13px] text-[var(--text-muted)]">
         Loading workspace…
       </div>
+    );
+  }
+
+  if (!configured) {
+    return (
+      <AuthContext.Provider value={value}>
+        <div className="flex min-h-screen items-center justify-center px-6 text-center">
+          <div className="card max-w-md p-8">
+            <h1 className="text-[18px] font-semibold">Connect Supabase to enable sign in</h1>
+            <p className="mt-2 text-[13px] text-[var(--text-secondary)]">
+              Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY, then redeploy.
+            </p>
+            <a href="/login" className="mt-4 inline-block text-[13px] text-[var(--accent)]">
+              Open sign in page
+            </a>
+          </div>
+        </div>
+      </AuthContext.Provider>
     );
   }
 
@@ -92,8 +129,4 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
-}
-
-export function useCurrentUser() {
-  return CURRENT_USER;
 }

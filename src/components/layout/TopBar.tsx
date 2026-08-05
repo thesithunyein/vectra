@@ -4,24 +4,25 @@ import { Bell, Search, Settings, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth-context";
-import { CURRENT_USER } from "@/lib/auth";
+import { PLANT_DEFAULTS } from "@/lib/auth";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export function TopBar({ title, subtitle }: { title: string; subtitle: string }) {
   const { alerts } = useStore();
-  const { session, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const unread = alerts.filter((a) => a.status === "open").length;
-  const user = session ?? CURRENT_USER;
+
+  if (!user) return null;
 
   return (
     <div className="sticky top-0 z-30 border-b border-[var(--border-subtle)] surface-blur">
       <div className="flex items-center gap-4 px-8 py-3">
         <div className="hidden items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-1.5 text-[12px] lg:flex">
           <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
-          <span className="text-[var(--text-secondary)]">{CURRENT_USER.plantSite}</span>
+          <span className="text-[var(--text-secondary)]">{user.plantSite}</span>
           <span className="text-[var(--text-muted)]">·</span>
-          <span className="text-[var(--text-muted)]">{CURRENT_USER.shift}</span>
+          <span className="text-[var(--text-muted)]">{user.shift}</span>
         </div>
         <div className="relative mx-auto w-full max-w-md">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" strokeWidth={1.5} />
@@ -50,25 +51,37 @@ export function TopBar({ title, subtitle }: { title: string; subtitle: string })
               onClick={() => setOpen((v) => !v)}
               className="ml-1 flex items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] py-1 pl-1 pr-2 hover:border-[var(--border-strong)]"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[12px] font-medium text-[var(--accent)]">
-                {CURRENT_USER.initials}
-              </div>
+              {user.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name}
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[12px] font-medium text-[var(--accent)]">
+                  {user.initials}
+                </div>
+              )}
               <div className="hidden text-left sm:block">
                 <div className="text-[12px] font-medium leading-tight">{user.name}</div>
-                <div className="text-[11px] text-[var(--text-muted)]">{CURRENT_USER.role}</div>
+                <div className="text-[11px] text-[var(--text-muted)]">{user.role}</div>
               </div>
               <ChevronDown className="h-3.5 w-3.5 text-[var(--text-muted)]" />
             </button>
             {open && (
               <div className="absolute right-0 mt-2 w-64 rounded-xl border border-[var(--border-strong)] bg-[var(--bg-card)] p-3 shadow-2xl">
-                <div className="text-[13px] font-medium">{CURRENT_USER.name}</div>
-                <div className="text-[12px] text-[var(--text-secondary)]">{CURRENT_USER.role}</div>
-                <div className="mt-1 font-mono text-[11px] text-[var(--accent)]">{CURRENT_USER.email}</div>
+                <div className="text-[13px] font-medium">{user.name}</div>
+                <div className="text-[12px] text-[var(--text-secondary)]">{user.role}</div>
+                <div className="mt-1 font-mono text-[11px] text-[var(--accent)]">{user.email}</div>
                 <div className="mt-2 border-t border-[var(--border-subtle)] pt-2 text-[12px] text-[var(--text-muted)]">
-                  {CURRENT_USER.plant} · {CURRENT_USER.plantSite}
+                  {user.plant} · {user.plantSite}
+                </div>
+                <div className="mt-1 text-[11px] text-[var(--text-muted)]">
+                  Default plant template: {PLANT_DEFAULTS.plant}
                 </div>
                 <button
-                  onClick={signOut}
+                  onClick={() => signOut()}
                   className="mt-3 w-full rounded-lg border border-[var(--border-subtle)] px-3 py-2 text-[12px] hover:bg-[var(--bg-hover)]"
                 >
                   Sign out

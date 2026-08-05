@@ -3,11 +3,13 @@
 import { TopBar } from "@/components/layout/TopBar";
 import { PageTransition } from "@/components/motion/PageTransition";
 import { useStore } from "@/lib/store";
+import { useAuth } from "@/lib/auth-context";
 import { initialDevices } from "@/lib/seed";
 import clsx from "clsx";
 
 export default function MaintenancePage() {
   const { maintenance, closeMaintenance } = useStore();
+  const { user } = useAuth();
 
   return (
     <>
@@ -39,7 +41,7 @@ export default function MaintenancePage() {
                 </div>
                 {m.status === "open" ? (
                   <button
-                    onClick={() => closeMaintenance(m.id)}
+                    onClick={() => closeMaintenance(m.id, user?.name)}
                     className="rounded-lg bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-white hover:brightness-110"
                   >
                     Close & sign record

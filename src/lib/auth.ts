@@ -1,30 +1,51 @@
-export const CURRENT_USER = {
-  id: "u-farah",
-  name: "Farah Aziz",
-  email: "farah@apex-precision.my",
-  role: "Ops Lead",
-  initials: "FA",
-  plant: "Apex Precision",
-  plantSite: "Shah Alam Plant 2",
-  shift: "Day shift",
-} as const;
+import type { User } from "@supabase/supabase-js";
 
-export const SESSION_KEY = "vectra_session";
-
-export type Session = {
-  userId: string;
+export type AppUser = {
+  id: string;
   name: string;
   email: string;
   role: string;
-  signedInAt: string;
+  initials: string;
+  plant: string;
+  plantSite: string;
+  shift: string;
+  avatarUrl?: string | null;
 };
 
-export function createSession(): Session {
+export const PLANT_DEFAULTS = {
+  plant: "Apex Precision",
+  plantSite: "Shah Alam Plant 2",
+  shift: "Day shift",
+  role: "Ops Lead",
+} as const;
+
+export function userFromSupabase(user: User): AppUser {
+  const meta = user.user_metadata ?? {};
+  const name =
+    (meta.full_name as string) ||
+    (meta.name as string) ||
+    (meta.user_name as string) ||
+    user.email?.split("@")[0] ||
+    "Plant user";
+  const parts = name.trim().split(/\s+/);
+  const initials =
+    parts.length >= 2
+      ? `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+      : name.slice(0, 2).toUpperCase();
+
   return {
-    userId: CURRENT_USER.id,
-    name: CURRENT_USER.name,
-    email: CURRENT_USER.email,
-    role: CURRENT_USER.role,
-    signedInAt: new Date().toISOString(),
+    id: user.id,
+    name,
+    email: user.email ?? "",
+    role: PLANT_DEFAULTS.role,
+    initials,
+    plant: PLANT_DEFAULTS.plant,
+    plantSite: PLANT_DEFAULTS.plantSite,
+    shift: PLANT_DEFAULTS.shift,
+    avatarUrl: (meta.avatar_url as string) || (meta.picture as string) || null,
   };
+}
+
+export function getAppUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 }
