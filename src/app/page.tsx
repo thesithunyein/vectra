@@ -126,15 +126,16 @@ const FAQ = [
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[var(--bg-base)]">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-35"
-        style={{
-          backgroundImage:
-            "linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
-        }}
-      />
-      <div className="pointer-events-none absolute left-1/2 top-0 h-[520px] w-[720px] -translate-x-1/2 rounded-full bg-[var(--accent-soft)] blur-3xl" />
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_18%_12%,rgba(167,139,250,0.28),transparent_52%),radial-gradient(ellipse_at_82%_8%,rgba(196,181,253,0.22),transparent_48%),radial-gradient(ellipse_at_50%_92%,rgba(99,102,241,0.12),transparent_55%)] dark:bg-[radial-gradient(ellipse_at_18%_12%,rgba(99,102,241,0.18),transparent_52%),radial-gradient(ellipse_at_82%_8%,rgba(129,140,248,0.14),transparent_48%),radial-gradient(ellipse_at_50%_92%,rgba(59,130,246,0.1),transparent_55%)]" />
+        <div
+          className="absolute inset-0 opacity-[0.35] dark:opacity-[0.2]"
+          style={{
+            backgroundImage: "radial-gradient(circle, var(--border-subtle) 1px, transparent 1px)",
+            backgroundSize: "28px 28px",
+          }}
+        />
+      </div>
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-3">
@@ -226,8 +227,7 @@ export default function LandingPage() {
             </span>
           </div>
 
-          <div className="relative mt-10 grid gap-4 lg:grid-cols-2">
-            <div className="absolute left-6 top-8 hidden h-[calc(100%-4rem)] w-px bg-gradient-to-b from-[var(--accent)] via-[var(--border-strong)] to-transparent lg:block" />
+          <div className="mt-10 grid gap-4 lg:grid-cols-2">
             {WORKFLOW.map((step, index) => (
               <motion.div
                 key={step.step}
@@ -235,9 +235,8 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.06 }}
-                className="card relative p-6 lg:pl-14"
+                className="card p-6"
               >
-                <div className="absolute left-5 top-6 hidden h-3 w-3 rounded-full border-2 border-[var(--accent)] bg-[var(--bg-base)] lg:block" />
                 <div className="mb-4 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl accent-soft">
                     <step.icon className="h-5 w-5" strokeWidth={1.5} />
