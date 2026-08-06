@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { isCloudUserId } from "@/lib/plant-db";
 import {
-  deletePlantWorkspace,
-  getPlantWorkspace,
-  isCloudUserId,
-  savePlantWorkspace,
-} from "@/lib/plant-db";
+  deleteScopedPlantWorkspace,
+  ensureTenantForUser,
+  getScopedPlantWorkspace,
+  resolvePlantScope,
+  saveScopedPlantWorkspace,
+} from "@/lib/tenant-db";
+import { canWritePlant } from "@/lib/tenant-types";
 import type { PlantData } from "@/lib/plant-data";
 import { EMPTY_PLANT } from "@/lib/plant-data";
+import { loadWorkspace } from "@/lib/workspace";
 
 async function requireUser() {
   const supabase = await createClient();
@@ -15,35 +20,51 @@ async function requireUser() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user || !isCloudUserId(user.id)) {
-    return { supabase, user: null as null };
+    return { supabase, user: null as null, admin: null };
   }
-  return { supabase, user };
+  const admin = createAdminClient();
+  return { supabase, user, admin };
 }
 
 export async function GET() {
-  const { supabase, user } = await requireUser();
-  if (!user) {
+  const { user, admin } = await requireUser();
+  if (!user || !admin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const plant = await getPlantWorkspace(supabase, user.id);
-  return NextResponse.json(plant ?? EMPTY_PLANT);
+  let scope = await resolvePlantScope(admin, user.id);
+  if (scope.mode === "user") {
+    const ws = loadWorkspace(user.id);
+    scope = await ensureTenantForUser(admin, user.id, ws.plant, ws.plantSite);
+  }
+
+  const plant = await getScopedPlantWorkspace(admin, scope);
+  return NextResponse.json({
+    ...((plant ?? EMPTY_PLANT) as PlantData),
+    tenant: scope.tenant ?? null,
+    role: scope.role,
+  });
 }
 
 export async function PUT(request: Request) {
-  const { supabase, user } = await requireUser();
-  if (!user) {
+  const { user, admin } = await requireUser();
+  if (!user || !admin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: PlantData;
+  const scope = await resolvePlantScope(admin, user.id);
+  if (!canWritePlant(scope.role)) {
+    return NextResponse.json({ error: "Read-only access for vendor role." }, { status: 403 });
+  }
+
+  let body: PlantData & { tenant?: unknown; role?: unknown };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const ok = await savePlantWorkspace(supabase, user.id, {
+  const ok = await saveScopedPlantWorkspace(admin, scope, {
     devices: body.devices ?? [],
     alerts: body.alerts ?? [],
     maintenance: body.maintenance ?? [],
@@ -54,7 +75,7 @@ export async function PUT(request: Request) {
     return NextResponse.json(
       {
         error:
-          "Could not save plant workspace. Run supabase/schema.sql in your Supabase project.",
+          "Could not save plant workspace. Run supabase/schema-v2-tenants.sql in Supabase.",
       },
       { status: 500 }
     );
@@ -64,11 +85,16 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE() {
-  const { supabase, user } = await requireUser();
-  if (!user) {
+  const { user, admin } = await requireUser();
+  if (!user || !admin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  await deletePlantWorkspace(supabase, user.id);
+  const scope = await resolvePlantScope(admin, user.id);
+  if (scope.role !== "owner") {
+    return NextResponse.json({ error: "Only plant owner can clear workspace data." }, { status: 403 });
+  }
+
+  await deleteScopedPlantWorkspace(admin, scope);
   return NextResponse.json({ ok: true });
 }

@@ -94,8 +94,8 @@ const INDUSTRIAL_PILLS = [
 
 const GET_STARTED = [
   "Create your plant account with Google, email, or wallet",
-  "Set plant name, site, and role in Settings",
-  "Import machines via Excel/CSV or connect lines via telemetry API",
+  "Invite ops, maintenance, and vendors to one plant workspace",
+  "Import machines via Excel/CSV or connect lines via HTTP/MQTT telemetry",
   "Close maintenance → signed record with integrity seal",
 ];
 
@@ -123,7 +123,7 @@ const FAQ = [
   {
     question: "When does my plant data appear?",
     answer:
-      "Your workspace starts with your plant profile. Import from Excel/CSV, connect lines via the telemetry API in Settings, or load example data to walk through the console.",
+      "Your workspace starts with your plant profile. Import from Excel/CSV, connect lines via HTTP or MQTT in Settings, invite shift teammates, or load example data to walk through the console.",
   },
   {
     question: "Who is accountable for a closed record?",

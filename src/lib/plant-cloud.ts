@@ -1,15 +1,28 @@
 import type { PlantData } from "./plant-data";
+import type { PlantRole, PlantTenant } from "./tenant-types";
 
-export async function fetchPlantFromCloud(): Promise<PlantData | null> {
+export type PlantCloudResponse = PlantData & {
+  tenant?: PlantTenant | null;
+  role?: PlantRole;
+};
+
+export type TelemetryKeyInfo = {
+  apiKey: string;
+  mqttTopic: string;
+};
+
+export async function fetchPlantFromCloud(): Promise<PlantCloudResponse | null> {
   try {
     const res = await fetch("/api/plant", { cache: "no-store" });
     if (!res.ok) return null;
-    const data = (await res.json()) as PlantData & { ok?: boolean };
+    const data = (await res.json()) as PlantCloudResponse;
     return {
       devices: data.devices ?? [],
       alerts: data.alerts ?? [],
       maintenance: data.maintenance ?? [],
       records: data.records ?? [],
+      tenant: data.tenant ?? null,
+      role: data.role,
     };
   } catch {
     return null;
@@ -38,25 +51,74 @@ export async function clearPlantCloud(): Promise<boolean> {
   }
 }
 
-export async function fetchTelemetryApiKey(): Promise<string | null> {
+export async function fetchTelemetryKeyInfo(): Promise<TelemetryKeyInfo | null> {
   try {
     const res = await fetch("/api/plant/api-key", { cache: "no-store" });
     if (!res.ok) return null;
-    const data = (await res.json()) as { apiKey?: string };
-    return data.apiKey ?? null;
+    const data = (await res.json()) as TelemetryKeyInfo;
+    if (!data.apiKey) return null;
+    return { apiKey: data.apiKey, mqttTopic: data.mqttTopic ?? "" };
   } catch {
     return null;
   }
 }
 
-export async function rotateTelemetryApiKey(): Promise<string | null> {
+/** @deprecated use fetchTelemetryKeyInfo */
+export async function fetchTelemetryApiKey(): Promise<string | null> {
+  const info = await fetchTelemetryKeyInfo();
+  return info?.apiKey ?? null;
+}
+
+export async function rotateTelemetryApiKey(): Promise<TelemetryKeyInfo | null> {
   try {
     const res = await fetch("/api/plant/api-key", { method: "POST" });
     if (!res.ok) return null;
-    const data = (await res.json()) as { apiKey?: string };
-    return data.apiKey ?? null;
+    const data = (await res.json()) as TelemetryKeyInfo;
+    if (!data.apiKey) return null;
+    return { apiKey: data.apiKey, mqttTopic: data.mqttTopic ?? "" };
   } catch {
     return null;
+  }
+}
+
+export async function fetchTenantInfo(): Promise<{
+  tenant: PlantTenant | null;
+  role: PlantRole | null;
+  members: number;
+} | null> {
+  try {
+    const res = await fetch("/api/tenant", { cache: "no-store" });
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      tenant?: PlantTenant | null;
+      role?: PlantRole;
+      members?: number;
+    };
+    return {
+      tenant: data.tenant ?? null,
+      role: data.role ?? null,
+      members: data.members ?? 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function joinPlantTeam(
+  inviteCode: string,
+  role: PlantRole = "maintenance"
+): Promise<{ ok: boolean; error?: string; tenant?: PlantTenant }> {
+  try {
+    const res = await fetch("/api/tenant", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "join", inviteCode, role }),
+    });
+    const data = (await res.json()) as { tenant?: PlantTenant; error?: string };
+    if (!res.ok) return { ok: false, error: data.error ?? "Join failed" };
+    return { ok: true, tenant: data.tenant };
+  } catch {
+    return { ok: false, error: "Network error" };
   }
 }
 
@@ -78,6 +140,7 @@ export async function sendTestTelemetry(payload: {
       metric: payload.metric,
       value: payload.value,
       threshold: payload.threshold,
+      source: "http",
     }),
   });
   return res.json();

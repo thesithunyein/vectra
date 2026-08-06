@@ -1,0 +1,13 @@
+{
+  "name": "vectra-mqtt-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MQTT → Vectra telemetry ingest bridge for factory line pilots",
+  "type": "module",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "mqtt": "^5.14.1"
+  }
+}

@@ -9,16 +9,17 @@ Industrial 5.0 shift console for manufacturing plants in **Malaysia and Southeas
 - AI alert briefs (OpenAI + deterministic fallback)
 - Maintenance close-out with signed records
 - Solana integrity attestation (devnet → mainnet-ready pattern)
-- HTTP telemetry ingest (`POST /api/telemetry/ingest`)
-- Supabase cloud persistence per plant
+- HTTP + MQTT telemetry ingest (`POST /api/telemetry/ingest`, `services/mqtt-bridge`)
+- Multi-tenant plant teams (owner, ops lead, maintenance, vendor read-only)
+- Supabase cloud persistence per plant team
 
 **Target user:** Ops Lead + Maintenance Supervisor on one SMT/assembly line.
 
 ## Phase 2 — Line connect (days 30–60)
 
-- MQTT / webhook adapter → telemetry API
+- ~~MQTT / webhook adapter → telemetry API~~ (MQTT bridge + plant topics shipped)
 - Threshold rules per machine metric
-- Multi-shift user roles (read-only vendor view)
+- ~~Multi-shift user roles (read-only vendor view)~~ (roles shipped in Settings → Plant team)
 - Email/Slack alert fan-out
 - Move attestation wallet to mainnet for pilot customers
 

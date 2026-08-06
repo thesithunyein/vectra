@@ -7,9 +7,10 @@ import { useAuth } from "@/lib/auth-context";
 import { useStore } from "@/lib/store";
 import { ImportPlantData } from "@/components/settings/ImportPlantData";
 import { ConnectLinePanel } from "@/components/settings/ConnectLinePanel";
+import { TeamPanel } from "@/components/settings/TeamPanel";
 
 export default function SettingsPage() {
-  const { user, updateWorkspace } = useAuth();
+  const { user, updateWorkspace, readOnly, tenant, plantRole } = useAuth();
   const { usingSample, hasPlantData, loadSamplePlant, clearPlantData } = useStore();
   const [plant, setPlant] = useState("");
   const [plantSite, setPlantSite] = useState("");
@@ -46,6 +47,12 @@ export default function SettingsPage() {
       />
       <PageTransition>
         <div className="mx-auto max-w-2xl space-y-5 px-8 pb-10">
+          {tenant && (
+            <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-4 py-3 text-[12px] text-[var(--text-secondary)]">
+              Shared plant: <span className="font-medium text-[var(--text-primary)]">{tenant.name}</span>
+              {plantRole && <> · {plantRole.replace("_", " ")}</>}
+            </div>
+          )}
           <div className="card p-6">
             <h3 className="text-[15px] font-medium">Profile</h3>
             <div className="mt-4 flex items-center gap-4">
@@ -113,16 +120,25 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={save}
-              className="rounded-lg bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-white hover:brightness-110"
+              disabled={readOnly}
+              className="rounded-lg bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-white hover:brightness-110 disabled:opacity-40"
             >
               {saved ? "Saved" : "Save workspace"}
             </button>
+            {readOnly && (
+              <p className="text-[12px] text-[var(--text-muted)]">
+                Vendor access is read-only. Ask the plant owner to update workspace settings.
+              </p>
+            )}
           </div>
 
-          <ImportPlantData />
+          <TeamPanel />
+
+          {!readOnly && <ImportPlantData />}
 
           <ConnectLinePanel />
 
+          {!readOnly && (
           <div className="card p-6">
             <h3 className="text-[15px] font-medium">Example plant data</h3>
             <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
@@ -163,6 +179,7 @@ export default function SettingsPage() {
               </p>
             )}
           </div>
+          )}
         </div>
       </PageTransition>
     </>

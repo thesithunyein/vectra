@@ -39,6 +39,7 @@ interface Store {
   usingSample: boolean;
   hasPlantData: boolean;
   cloudSynced: boolean;
+  readOnly: boolean;
   devices: Device[];
   alerts: Alert[];
   maintenance: MaintenanceEvent[];
@@ -71,7 +72,7 @@ function applyPlant(setters: {
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const { user, refreshWorkspace } = useAuth();
+  const { user, refreshWorkspace, readOnly } = useAuth();
   const [ready, setReady] = useState(false);
   const [usingSample, setUsingSample] = useState(false);
   const [cloudSynced, setCloudSynced] = useState(false);
@@ -155,7 +156,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [user?.id]);
 
   useEffect(() => {
-    if (!user || !ready || usingSample || skipPersist.current) return;
+    if (!user || !ready || usingSample || skipPersist.current || readOnly) return;
 
     const plant: PlantData = { devices, alerts, maintenance, records };
     savePlantData(user.id, plant);
@@ -168,7 +169,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }, 500);
 
     return () => window.clearTimeout(timer);
-  }, [user, ready, usingSample, devices, alerts, maintenance, records]);
+  }, [user, ready, usingSample, readOnly, devices, alerts, maintenance, records]);
 
   const refreshFromCloud = useCallback(async () => {
     if (!user || !isCloudUserId(user.id) || usingSample) return;
@@ -185,7 +186,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [user, usingSample]);
 
   const loadSamplePlant = useCallback(() => {
-    if (!user) return;
+    if (!user || readOnly) return;
     clearStoredPlant(user.id);
     void clearPlantCloud();
     saveWorkspace(user.id, { sampleData: true });
@@ -205,10 +206,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setCloudSynced(false);
     refreshWorkspace();
     setToast("Example plant data loaded");
-  }, [user, refreshWorkspace]);
+  }, [user, readOnly, refreshWorkspace]);
 
   const clearPlantData = useCallback(async () => {
-    if (!user) return;
+    if (!user || readOnly) return;
     clearStoredPlant(user.id);
     await clearPlantCloud();
     saveWorkspace(user.id, { sampleData: false });
@@ -223,11 +224,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setCloudSynced(false);
     refreshWorkspace();
     setToast("Plant data cleared");
-  }, [user, refreshWorkspace]);
+  }, [user, readOnly, refreshWorkspace]);
 
   const importPlantData = useCallback(
     async (data: PlantData) => {
-      if (!user) return;
+      if (!user || readOnly) return;
       clearStoredPlant(user.id);
       saveWorkspace(user.id, { sampleData: false });
       applyPlant({ setDevices, setAlerts, setMaintenance, setRecords, plant: data });
@@ -242,18 +243,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         `Imported ${data.devices.length} devices${data.alerts.length ? `, ${data.alerts.length} alerts` : ""}${data.maintenance.length ? `, ${data.maintenance.length} maintenance` : ""}`
       );
     },
-    [user, refreshWorkspace]
+    [user, readOnly, refreshWorkspace]
   );
 
   const acknowledgeAlert = useCallback((id: string) => {
+    if (readOnly) return;
     setAlerts((prev) =>
       prev.map((a) => (a.id === id ? { ...a, status: "acknowledged" as const } : a))
     );
     setToast("Alert acknowledged");
-  }, []);
+  }, [readOnly]);
 
   const assignAlert = useCallback(
     (id: string) => {
+      if (readOnly) return;
       const assignee = user?.name?.trim() || "Unassigned";
       setAlerts((prev) =>
         prev.map((a) =>
@@ -264,10 +267,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       );
       setToast(`Assigned to ${assignee}`);
     },
-    [user?.name]
+    [user?.name, readOnly]
   );
 
   const resolveAlert = useCallback((id: string) => {
+    if (readOnly) return;
     setAlerts((prev) => {
       const next = prev.map((a) =>
         a.id === id ? { ...a, status: "resolved" as const } : a
@@ -287,10 +291,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return next;
     });
     setToast("Alert resolved");
-  }, []);
+  }, [readOnly]);
 
   const closeMaintenance = useCallback(
     async (id: string, sealedByName?: string) => {
+      if (readOnly) return;
       const event = maintenance.find((m) => m.id === id);
       if (!event || event.status === "closed") return;
 
@@ -370,7 +375,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         setToast(`Signed record · ${record.id}${chainError ? ` (${chainError})` : ""}`);
       }
     },
-    [devices, maintenance, records.length, user?.name]
+    [devices, maintenance, records.length, user?.name, readOnly]
   );
 
   const clearToast = useCallback(() => setToast(null), []);
@@ -383,6 +388,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       usingSample,
       hasPlantData: plantLoaded,
       cloudSynced,
+      readOnly,
       devices,
       alerts,
       maintenance,
@@ -403,6 +409,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       usingSample,
       plantLoaded,
       cloudSynced,
+      readOnly,
       devices,
       alerts,
       maintenance,

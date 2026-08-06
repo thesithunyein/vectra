@@ -25,15 +25,22 @@ import {
   disconnectWallet,
   loadWalletSession,
 } from "@/lib/wallet";
+import { fetchTenantInfo } from "@/lib/plant-cloud";
+import { isCloudUserId } from "@/lib/plant-db";
+import type { PlantRole, PlantTenant } from "@/lib/tenant-types";
 
 type AuthContextValue = {
   session: Session | null;
   user: AppUser | null;
   ready: boolean;
   configured: boolean;
+  tenant: PlantTenant | null;
+  plantRole: PlantRole | null;
+  readOnly: boolean;
   signOut: () => Promise<void>;
   updateWorkspace: (patch: Partial<WorkspacePrefs>) => void;
   refreshWorkspace: () => void;
+  refreshTenant: () => Promise<void>;
   connectWallet: (provider: "phantom" | "metamask") => Promise<void>;
 };
 
@@ -60,6 +67,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [user, setUser] = useState<AppUser | null>(null);
+  const [tenant, setTenant] = useState<PlantTenant | null>(null);
+  const [plantRole, setPlantRole] = useState<PlantRole | null>(null);
   const [ready, setReady] = useState(false);
   const [configured] = useState(() => {
     try {
@@ -70,6 +79,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
   const router = useRouter();
   const pathname = usePathname();
+
+  const refreshTenant = useCallback(async () => {
+    if (!session?.user?.id || !isCloudUserId(session.user.id)) {
+      setTenant(null);
+      setPlantRole(null);
+      return;
+    }
+    const info = await fetchTenantInfo();
+    setTenant(info?.tenant ?? null);
+    setPlantRole(info?.role ?? null);
+  }, [session?.user?.id]);
 
   const refreshWorkspace = useCallback(() => {
     setUser(mapUser(session, walletAddress));
@@ -106,11 +126,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const supabase = createClient();
 
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       setSession(data.session);
       const wallet = loadWalletSession()?.address || null;
       setWalletAddress(wallet);
       setUser(mapUser(data.session, wallet));
+      if (data.session?.user?.id && isCloudUserId(data.session.user.id)) {
+        const info = await fetchTenantInfo();
+        setTenant(info?.tenant ?? null);
+        setPlantRole(info?.role ?? null);
+      }
       setReady(true);
     });
 
@@ -120,6 +145,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(nextSession);
       const wallet = loadWalletSession()?.address || null;
       setUser(mapUser(nextSession, wallet));
+      if (nextSession?.user?.id && isCloudUserId(nextSession.user.id)) {
+        void fetchTenantInfo().then((info) => {
+          setTenant(info?.tenant ?? null);
+          setPlantRole(info?.role ?? null);
+        });
+      } else {
+        setTenant(null);
+        setPlantRole(null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -149,8 +183,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setWalletAddress(null);
     setUser(null);
+    setTenant(null);
+    setPlantRole(null);
     router.replace("/login");
   }, [configured, router]);
+
+  const readOnly = plantRole === "vendor";
 
   const value = useMemo(
     () => ({
@@ -158,9 +196,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       ready,
       configured,
+      tenant,
+      plantRole,
+      readOnly,
       signOut,
       updateWorkspace,
       refreshWorkspace,
+      refreshTenant,
       connectWallet,
     }),
     [
@@ -168,9 +210,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       ready,
       configured,
+      tenant,
+      plantRole,
+      readOnly,
       signOut,
       updateWorkspace,
       refreshWorkspace,
+      refreshTenant,
       connectWallet,
     ]
   );

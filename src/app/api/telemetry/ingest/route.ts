@@ -1,19 +1,18 @@
 import { NextResponse } from "next/server";
 import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 import {
-  findUserByApiKey,
-  getPlantWorkspace,
-  logTelemetry,
-  savePlantWorkspace,
-} from "@/lib/plant-db";
+  findScopeByApiKey,
+  getScopedPlantWorkspace,
+  logScopedTelemetry,
+  saveScopedPlantWorkspace,
+} from "@/lib/tenant-db";
 import { EMPTY_PLANT } from "@/lib/plant-data";
 import { applyTelemetrySignal, type TelemetryPayload } from "@/lib/telemetry";
 
 function extractApiKey(request: Request): string | null {
   const auth = request.headers.get("authorization");
   if (auth?.startsWith("Bearer ")) return auth.slice(7).trim();
-  const header = request.headers.get("x-vectra-key");
-  return header?.trim() || null;
+  return request.headers.get("x-vectra-key")?.trim() || null;
 }
 
 export async function POST(request: Request) {
@@ -34,12 +33,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Server misconfigured." }, { status: 503 });
   }
 
-  const userId = await findUserByApiKey(admin, apiKey);
-  if (!userId) {
+  const resolved = await findScopeByApiKey(admin, apiKey);
+  if (!resolved) {
     return NextResponse.json({ error: "Invalid API key." }, { status: 401 });
   }
 
-  let body: TelemetryPayload;
+  let body: TelemetryPayload & { source?: string };
   try {
     body = await request.json();
   } catch {
@@ -47,17 +46,15 @@ export async function POST(request: Request) {
   }
 
   if (!body.deviceId?.trim() || !body.metric?.trim()) {
-    return NextResponse.json(
-      { error: "deviceId and metric are required." },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "deviceId and metric are required." }, { status: 400 });
   }
 
   if (typeof body.value !== "number" || Number.isNaN(body.value)) {
     return NextResponse.json({ error: "value must be a number." }, { status: 400 });
   }
 
-  const plant = (await getPlantWorkspace(admin, userId)) ?? EMPTY_PLANT;
+  const source = body.source === "mqtt" ? "mqtt" : "http";
+  const plant = (await getScopedPlantWorkspace(admin, resolved.scope)) ?? EMPTY_PLANT;
   const result = applyTelemetrySignal(plant, {
     deviceId: body.deviceId.trim(),
     metric: body.metric.trim(),
@@ -73,21 +70,23 @@ export async function POST(request: Request) {
     );
   }
 
-  const saved = await savePlantWorkspace(admin, userId, result.plant);
+  const saved = await saveScopedPlantWorkspace(admin, resolved.scope, result.plant);
   if (!saved) {
     return NextResponse.json({ error: "Could not persist telemetry signal." }, { status: 500 });
   }
 
-  await logTelemetry(admin, {
-    userId,
+  await logScopedTelemetry(admin, resolved.scope, {
     deviceId: body.deviceId.trim(),
     metric: body.metric.trim(),
     value: body.value,
     threshold: body.threshold,
+    source,
   });
 
   return NextResponse.json({
     ok: true,
+    source,
+    mqttTopic: resolved.mqttTopic,
     alertCreated: result.alertCreated,
     alertId: result.alertId,
     deviceId: body.deviceId,
@@ -101,13 +100,25 @@ export async function GET() {
   return NextResponse.json({
     endpoint: "/api/telemetry/ingest",
     method: "POST",
-    auth: "Authorization: Bearer <your-vectra-api-key>",
-    body: {
+    auth: "Authorization: Bearer <plant-api-key>",
+    mqtt: {
+      topic: "vectra/plant/{key-slug}/telemetry",
+      bridge: "services/mqtt-bridge",
+      payload: {
+        deviceId: "SMT-01",
+        metric: "reject_rate",
+        value: 4.2,
+        threshold: 3.0,
+        unit: "percent",
+        source: "mqtt",
+      },
+    },
+    http: {
       deviceId: "SMT-01",
       metric: "reject_rate",
       value: 4.2,
       threshold: 3.0,
-      unit: "percent",
+      source: "http",
     },
   });
 }
