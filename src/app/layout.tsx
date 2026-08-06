@@ -37,9 +37,7 @@ const themeInit = `
 (function(){
   try {
     var t = localStorage.getItem('vectra_theme');
-    if (t !== 'light' && t !== 'dark') {
-      t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    }
+    if (t !== 'light' && t !== 'dark') t = 'dark';
     document.documentElement.classList.add(t);
     document.documentElement.style.colorScheme = t;
   } catch (e) {

@@ -36,7 +36,7 @@ export function HeroVideoBackdrop() {
       <motion.div style={{ opacity, scale }} className="absolute inset-0 origin-center">
         {reduceMotion ? (
           <div
-            className="h-full w-full bg-cover bg-center"
+            className="hero-bg-media h-full w-full bg-cover bg-center"
             style={{ backgroundImage: "url(/hero-bg-poster.jpg)" }}
           />
         ) : (
@@ -49,7 +49,7 @@ export function HeroVideoBackdrop() {
             preload="metadata"
             poster="/hero-bg-poster.jpg"
             onLoadedData={() => setReady(true)}
-            className={`h-full w-full object-cover transition-opacity duration-[1.2s] ease-out ${
+            className={`hero-bg-media h-full w-full object-cover transition-opacity duration-[1.2s] ease-out ${
               ready ? "opacity-100" : "opacity-0"
             }`}
           >
@@ -57,9 +57,19 @@ export function HeroVideoBackdrop() {
           </video>
         )}
 
-        <div className="absolute inset-0 bg-[var(--bg-base)]/70 dark:bg-[#0a0a0b]/75" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg-base)]/25 via-transparent to-[var(--bg-base)]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[var(--bg-base)]/45 via-transparent to-[var(--bg-base)]/30" />
+        <div className="absolute inset-0" style={{ backgroundColor: "var(--hero-scrim)" }} />
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `linear-gradient(to bottom, var(--hero-scrim-top), transparent 42%, var(--hero-scrim-bottom))`,
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `linear-gradient(to right, var(--hero-scrim-side), transparent 55%, var(--hero-scrim-side))`,
+          }}
+        />
       </motion.div>
     </div>
   );
