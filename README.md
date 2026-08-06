@@ -38,7 +38,7 @@ Plant teams lose time when downtime is found late and handoffs live in chat thre
 - Close jobs with reason codes under a signed-in identity  
 - Seal **integrity records** and **attest on Solana** so the next shift can verify  
 
-Sign in with **Google**, work email, or wallet. New workspaces start empty — import your plant via **Excel/CSV**, connect lines as telemetry comes online, or load example data for a walkthrough.
+Sign in with **Google**, work email, or wallet. Import your plant via **Excel/CSV**, connect lines over **HTTP or MQTT**, invite shift teammates to one plant workspace, or load example data for a walkthrough.
 
 ## Architecture
 
@@ -97,7 +97,7 @@ sequenceDiagram
 | Maintenance | Close with reason · seals a record |
 | Records | Signed handoffs · integrity check · **Solana proof link** |
 | Reports | Weekly CSV export |
-| Settings | Plant identity, **Excel/CSV import**, **telemetry API**, cloud sync, example dataset |
+| Settings | Plant identity · **Excel/CSV import** · **Plant team** (invite codes) · **Connect a line** (HTTP/MQTT telemetry) · cloud sync |
 
 ## Stack
 
@@ -106,7 +106,8 @@ sequenceDiagram
 - **Data:** Supabase Postgres (plant workspace + telemetry log)  
 - **AI:** OpenAI alert briefs (deterministic fallback)  
 - **Web3:** Solana memo attestation on record close  
-- **Ingest:** `POST /api/telemetry/ingest` (HTTP → drift alerts)  
+- **Ingest:** `POST /api/telemetry/ingest` (HTTP) · MQTT via `services/mqtt-bridge`
+- **Multi-tenant:** Shared plant workspace per factory (owner, ops lead, maintenance, vendor read-only)
 - **Deploy:** Vercel · [vectra.sithunyein.com](https://vectra.sithunyein.com)
 
 ## Quick start
