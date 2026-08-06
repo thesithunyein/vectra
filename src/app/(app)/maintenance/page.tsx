@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth-context";
 import clsx from "clsx";
 
 export default function MaintenancePage() {
-  const { maintenance, devices, usingSample, closeMaintenance } = useStore();
+  const { maintenance, devices, hasPlantData, closeMaintenance } = useStore();
   const { user } = useAuth();
   const [sealingId, setSealingId] = useState<string | null>(null);
 
@@ -30,11 +30,17 @@ export default function MaintenancePage() {
       />
       <PageTransition>
         <div className="space-y-3 px-8 pb-10">
-          {!usingSample && maintenance.length === 0 && (
+          {!hasPlantData && (
             <EmptyWorkspace
               title="No maintenance jobs"
-              description="Open jobs appear when you assign alerts or schedule work."
+              description="Import maintenance rows with your plant CSV or create jobs by closing alerts."
             />
+          )}
+          {hasPlantData && maintenance.length === 0 && (
+            <p className="card p-5 text-[13px] text-[var(--text-secondary)]">
+              No maintenance jobs in your import. Add rows to the maintenance sheet or assign work
+              from Alerts.
+            </p>
           )}
           {maintenance.map((m) => {
             const device = devices.find((d) => d.id === m.deviceId);

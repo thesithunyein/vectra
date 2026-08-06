@@ -26,7 +26,7 @@ const STEPS = [
 ];
 
 export default function RecordsPage() {
-  const { records, usingSample } = useStore();
+  const { records, hasPlantData } = useStore();
 
   return (
     <>
@@ -71,13 +71,13 @@ export default function RecordsPage() {
             </p>
           </div>
 
-          {!usingSample && records.length === 0 && (
+          {!hasPlantData && (
             <EmptyWorkspace
               title="No signed records yet"
-              description="Closing a maintenance job seals a record under your name and attests the hash on-chain."
+              description="Close a maintenance job to seal a record under your name and attest on-chain."
             />
           )}
-          {(usingSample || records.length > 0) && (
+          {hasPlantData && (
             <div className="card overflow-hidden">
               <table className="w-full text-left text-[13px]">
                 <thead className="border-b border-[var(--border-subtle)] text-[var(--text-muted)]">
@@ -91,6 +91,14 @@ export default function RecordsPage() {
                   </tr>
                 </thead>
                 <tbody>
+                  {records.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-5 py-8 text-[13px] text-[var(--text-muted)]">
+                        No records yet. Close a maintenance job in Maintenance to seal your first
+                        handoff.
+                      </td>
+                    </tr>
+                  )}
                   {records.map((r, i) => (
                     <motion.tr
                       key={r.id}

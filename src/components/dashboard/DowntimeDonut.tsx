@@ -1,12 +1,13 @@
 "use client";
 
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
-import { downtimeBreakdown } from "@/lib/seed";
+import { downtimeBreakdown as defaultData } from "@/lib/seed";
+import type { DowntimeSlice } from "@/lib/plant-metrics";
 
 const COLORS = ["#0066ff", "#3b82f6", "#6366f1", "#94a3b8"];
 
-export function DowntimeDonut() {
-  const primary = downtimeBreakdown[0];
+export function DowntimeDonut({ data = defaultData }: { data?: DowntimeSlice[] }) {
+  const primary = data[0];
   return (
     <div className="card p-5">
       <h3 className="mb-2 text-[15px] font-medium">Downtime Analysis</h3>
@@ -14,7 +15,7 @@ export function DowntimeDonut() {
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={downtimeBreakdown}
+              data={data}
               dataKey="value"
               innerRadius={62}
               outerRadius={88}
@@ -22,7 +23,7 @@ export function DowntimeDonut() {
               stroke="none"
               animationDuration={600}
             >
-              {downtimeBreakdown.map((_, i) => (
+              {data.map((_, i) => (
                 <Cell key={i} fill={COLORS[i % COLORS.length]} />
               ))}
             </Pie>

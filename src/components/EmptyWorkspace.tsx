@@ -7,13 +7,17 @@ import { useStore } from "@/lib/store";
 export function EmptyWorkspace({
   title = "No plant data yet",
   description = "Import an Excel workbook or CSV from Settings, or load example data to walk through the ops loop.",
+  when = "no-plant",
 }: {
   title?: string;
   description?: string;
+  /** no-plant: hide when any plant data exists. always: force show. */
+  when?: "no-plant" | "always";
 }) {
-  const { usingSample, loadSamplePlant } = useStore();
+  const { usingSample, hasPlantData, loadSamplePlant } = useStore();
 
   if (usingSample) return null;
+  if (when === "no-plant" && hasPlantData) return null;
 
   return (
     <div className="card flex flex-col items-start gap-4 p-8 sm:flex-row sm:items-center sm:justify-between">

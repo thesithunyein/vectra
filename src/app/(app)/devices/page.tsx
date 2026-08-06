@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth-context";
 import clsx from "clsx";
 
 export default function DevicesPage() {
-  const { devices, usingSample } = useStore();
+  const { devices, hasPlantData } = useStore();
   const { user } = useAuth();
 
   return (
@@ -20,13 +20,18 @@ export default function DevicesPage() {
       />
       <PageTransition>
         <div className="space-y-5 px-8 pb-10">
-          {!usingSample && devices.length === 0 && (
+          {!hasPlantData && (
             <EmptyWorkspace
               title="No devices connected"
-              description="Machines appear here when they come online. Load example data to preview a populated console."
+              description="Import machines in Settings, connect telemetry, or load example data."
             />
           )}
-          {(usingSample || devices.length > 0) && (
+          {hasPlantData && devices.length === 0 && (
+            <p className="card p-5 text-[13px] text-[var(--text-secondary)]">
+              Your import has no device rows. Re-import with the devices sheet filled in.
+            </p>
+          )}
+          {devices.length > 0 && (
             <div className="card overflow-hidden">
               <table className="w-full text-left text-[13px]">
                 <thead className="border-b border-[var(--border-subtle)] text-[var(--text-muted)]">

@@ -12,11 +12,12 @@ import { DowntimeDonut } from "@/components/dashboard/DowntimeDonut";
 import { EmptyWorkspace } from "@/components/EmptyWorkspace";
 import { useStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth-context";
-import { kpis } from "@/lib/seed";
+import { usePlantMetrics } from "@/lib/use-plant-metrics";
 
 export default function AnalyticsPage() {
-  const { usingSample } = useStore();
+  const { hasPlantData } = useStore();
   const { user } = useAuth();
+  const metrics = usePlantMetrics();
 
   return (
     <>
@@ -26,75 +27,74 @@ export default function AnalyticsPage() {
       />
       <PageTransition>
         <div className="space-y-5 px-8 pb-10">
-          {!usingSample && (
-            <EmptyWorkspace
-              title="No analytics yet"
-              description="Charts fill in when your plant streams production and downtime data."
-            />
-          )}
+          <EmptyWorkspace
+            when="no-plant"
+            title="No analytics yet"
+            description="Import your plant or connect telemetry in Settings. Charts derive from your machines, alerts, and maintenance."
+          />
 
-          <StaggerChildren className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StaggerItem>
-              <KpiCard
-                label="Energy Cost Today"
-                value={usingSample ? kpis.energyCostToday : 0}
-                prefix="$"
-                delta={usingSample ? Math.abs(kpis.energyDelta) : 0}
-                deltaLabel={usingSample ? "% vs yesterday" : "awaiting telemetry"}
-                positiveIsGood={false}
-                icon={Zap}
-              />
-            </StaggerItem>
-            <StaggerItem>
-              <KpiCard
-                label="Production Efficiency"
-                value={usingSample ? kpis.productionEfficiency : 0}
-                decimals={1}
-                suffix="%"
-                delta={usingSample ? kpis.efficiencyDelta : 0}
-                deltaLabel={usingSample ? "% this week" : "awaiting telemetry"}
-                icon={Gauge}
-              />
-            </StaggerItem>
-            <StaggerItem>
-              <KpiCard
-                label="Total Downtime"
-                value={usingSample ? kpis.totalDowntimeHours : 0}
-                decimals={1}
-                suffix=" hrs"
-                delta={usingSample ? kpis.downtimeDelta : 0}
-                deltaLabel={usingSample ? "hrs vs average" : "no events"}
-                positiveIsGood={false}
-                icon={Clock}
-              />
-            </StaggerItem>
-            <StaggerItem>
-              <KpiCard
-                label="Cost Savings"
-                value={usingSample ? kpis.costSavingsMonth / 1000 : 0}
-                decimals={1}
-                prefix="$"
-                suffix="K"
-                delta={usingSample ? 12 : 0}
-                deltaLabel={usingSample ? "This month" : "no events"}
-                icon={BadgeDollarSign}
-              />
-            </StaggerItem>
-          </StaggerChildren>
-
-          {usingSample && (
+          {hasPlantData && (
             <>
+              <StaggerChildren className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <StaggerItem>
+                  <KpiCard
+                    label="Energy Cost Today"
+                    value={metrics.kpis.energyCostToday}
+                    prefix="$"
+                    delta={Math.abs(metrics.kpis.energyDelta)}
+                    deltaLabel="% vs yesterday"
+                    positiveIsGood={false}
+                    icon={Zap}
+                  />
+                </StaggerItem>
+                <StaggerItem>
+                  <KpiCard
+                    label="Production Efficiency"
+                    value={metrics.kpis.productionEfficiency}
+                    decimals={1}
+                    suffix="%"
+                    delta={Math.abs(metrics.kpis.efficiencyDelta)}
+                    deltaLabel="% this week"
+                    icon={Gauge}
+                  />
+                </StaggerItem>
+                <StaggerItem>
+                  <KpiCard
+                    label="Total Downtime"
+                    value={metrics.kpis.totalDowntimeHours}
+                    decimals={1}
+                    suffix=" hrs"
+                    delta={metrics.kpis.downtimeDelta}
+                    deltaLabel="hrs vs average"
+                    positiveIsGood={false}
+                    icon={Clock}
+                  />
+                </StaggerItem>
+                <StaggerItem>
+                  <KpiCard
+                    label="Cost Savings"
+                    value={metrics.kpis.costSavingsMonth / 1000}
+                    decimals={1}
+                    prefix="$"
+                    suffix="K"
+                    delta={12}
+                    deltaLabel="This month"
+                    icon={BadgeDollarSign}
+                  />
+                </StaggerItem>
+              </StaggerChildren>
+
               <div className="grid gap-4 xl:grid-cols-3">
                 <div className="xl:col-span-2">
-                  <ProductionTrendChart />
+                  <ProductionTrendChart data={metrics.productionTrend} />
                 </div>
-                <CostBreakdown />
+                <CostBreakdown data={metrics.costBreakdown} />
               </div>
 
               <div className="grid gap-4 md:grid-cols-3">
-                <PerformanceRadar />
-                <ProductionBars />
-                <DowntimeDonut />
+                <PerformanceRadar data={metrics.performanceRadar} />
+                <ProductionBars data={metrics.weekdayProduction} />
+                <DowntimeDonut data={metrics.downtimeBreakdown} />
               </div>
             </>
           )}

@@ -45,3 +45,6 @@ next-env.d.ts
 .env*
 
 .solana-attest-secret.tmp
+
+.vercel
+.env*

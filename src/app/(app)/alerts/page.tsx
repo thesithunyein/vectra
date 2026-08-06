@@ -9,7 +9,7 @@ import { useStore } from "@/lib/store";
 import clsx from "clsx";
 
 export default function AlertsPage() {
-  const { alerts, devices, usingSample, acknowledgeAlert, assignAlert, resolveAlert } =
+  const { alerts, devices, hasPlantData, acknowledgeAlert, assignAlert, resolveAlert } =
     useStore();
   const [briefs, setBriefs] = useState<Record<string, string>>({});
   const [briefSource, setBriefSource] = useState<Record<string, string>>({});
@@ -71,11 +71,17 @@ export default function AlertsPage() {
       />
       <PageTransition>
         <div className="space-y-3 px-8 pb-10">
-          {!usingSample && alerts.length === 0 && (
+          {!hasPlantData && (
             <EmptyWorkspace
               title="No alerts"
-              description="Your inbox is clear. Alerts appear here when machines drift or go down."
+              description="Import alerts with your plant data or connect telemetry to generate drift alerts."
             />
+          )}
+          {hasPlantData && alerts.length === 0 && (
+            <p className="card p-5 text-[13px] text-[var(--text-secondary)]">
+              No alerts in your plant data. Send a test telemetry signal from Settings or import an
+              alerts sheet.
+            </p>
           )}
           {alerts.map((a) => {
             const device = devices.find((d) => d.id === a.deviceId);
