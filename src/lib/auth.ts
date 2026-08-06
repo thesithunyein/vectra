@@ -1,6 +1,7 @@
 import type { User } from "@supabase/supabase-js";
 import type { WorkspacePrefs } from "@/lib/workspace";
 import { EMPTY_WORKSPACE } from "@/lib/workspace";
+import { shortAddress } from "@/lib/wallet";
 
 export type AppUser = {
   id: string;
@@ -12,11 +13,13 @@ export type AppUser = {
   plantSite: string;
   shift: string;
   avatarUrl?: string | null;
+  walletAddress?: string | null;
 };
 
 export function userFromSupabase(
   user: User,
-  workspace: WorkspacePrefs = EMPTY_WORKSPACE
+  workspace: WorkspacePrefs = EMPTY_WORKSPACE,
+  walletAddress?: string | null
 ): AppUser {
   const meta = user.user_metadata ?? {};
   const name =
@@ -41,6 +44,26 @@ export function userFromSupabase(
     plantSite: workspace.plantSite,
     shift: workspace.shift,
     avatarUrl: (meta.avatar_url as string) || (meta.picture as string) || null,
+    walletAddress: walletAddress || null,
+  };
+}
+
+export function userFromWallet(
+  address: string,
+  workspace: WorkspacePrefs = EMPTY_WORKSPACE
+): AppUser {
+  const short = shortAddress(address);
+  return {
+    id: `wallet:${address}`,
+    name: `Wallet ${short}`,
+    email: "",
+    role: workspace.role,
+    initials: "W",
+    plant: workspace.plant,
+    plantSite: workspace.plantSite,
+    shift: workspace.shift,
+    avatarUrl: null,
+    walletAddress: address,
   };
 }
 

@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth-context";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { shortAddress } from "@/lib/wallet";
 
 export function TopBar({ title, subtitle }: { title: string; subtitle: string }) {
   const { alerts } = useStore();
@@ -141,7 +142,9 @@ export function TopBar({ title, subtitle }: { title: string; subtitle: string })
               )}
               <div className="hidden text-left sm:block">
                 <div className="text-[12px] font-medium leading-tight">{user.name}</div>
-                <div className="text-[11px] text-[var(--text-muted)]">{user.role}</div>
+                <div className="text-[11px] text-[var(--text-muted)]">
+                  {user.walletAddress ? shortAddress(user.walletAddress) : user.role}
+                </div>
               </div>
               <ChevronDown className="h-3.5 w-3.5 text-[var(--text-muted)]" />
             </button>
@@ -149,13 +152,25 @@ export function TopBar({ title, subtitle }: { title: string; subtitle: string })
               <div className="absolute right-0 mt-2 w-64 rounded-xl border border-[var(--border-strong)] bg-[var(--bg-card)] p-3 shadow-2xl">
                 <div className="text-[13px] font-medium">{user.name}</div>
                 <div className="text-[12px] text-[var(--text-secondary)]">{user.role}</div>
-                <div className="mt-1 font-mono text-[11px] text-[var(--accent)]">{user.email}</div>
+                {user.email ? (
+                  <div className="mt-1 font-mono text-[11px] text-[var(--accent)]">{user.email}</div>
+                ) : null}
+                {user.walletAddress ? (
+                  <div className="mt-1 font-mono text-[11px] text-[var(--accent)]">
+                    {shortAddress(user.walletAddress)}
+                  </div>
+                ) : null}
                 <div className="mt-2 border-t border-[var(--border-subtle)] pt-2 text-[12px] text-[var(--text-muted)]">
                   {user.plant} · {user.plantSite}
                 </div>
-                {!user.avatarUrl && (
+                {!user.avatarUrl && !user.walletAddress && (
                   <p className="mt-2 text-[11px] text-[var(--text-muted)]">
                     Profile photo appears with Google sign-in.
+                  </p>
+                )}
+                {user.walletAddress && (
+                  <p className="mt-2 text-[11px] text-[var(--text-muted)]">
+                    Web3 identity connected · seals still attest on Solana.
                   </p>
                 )}
                 <button

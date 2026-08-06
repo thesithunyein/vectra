@@ -45,8 +45,7 @@ export default function LandingPage() {
           transition={{ duration: 0.4 }}
           className="max-w-3xl"
         >
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-1.5 text-[12px] text-[var(--text-secondary)] shadow-[var(--shadow-card)]">
-            <BrandLogo size={18} />
+          <div className="mb-6 inline-flex items-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-1.5 text-[12px] text-[var(--text-secondary)] shadow-[var(--shadow-card)]">
             Built for plant Ops and Maintenance
           </div>
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">

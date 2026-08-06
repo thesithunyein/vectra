@@ -6,6 +6,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { connectMetaMask, connectPhantom } from "@/lib/wallet";
 
 function oauthErrorMessage(raw: string | null) {
   if (!raw) return "";
@@ -80,6 +81,19 @@ function LoginForm() {
     }
   }
 
+  async function signInWithWallet(provider: "phantom" | "metamask") {
+    setError("");
+    setLoading(true);
+    try {
+      if (provider === "phantom") await connectPhantom();
+      else await connectMetaMask();
+      router.replace(next.startsWith("/") ? next : "/overview");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Wallet connect failed");
+      setLoading(false);
+    }
+  }
+
   async function handleEmailAuth(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -124,33 +138,37 @@ function LoginForm() {
 
   if (!configured) {
     return (
-      <div className="card w-full max-w-lg p-8">
-        <BrandLogo size={40} />
-        <h1 className="mt-6 text-[22px] font-semibold">Connect Supabase Auth</h1>
-        <p className="mt-2 text-[13px] leading-relaxed text-[var(--text-secondary)]">
-          Vectra uses free Supabase Auth for real plant users (Google + email). Add your project
-          keys, enable Google, then redeploy.
+      <div className="card w-full max-w-md p-8">
+        <div className="mb-8 flex items-center gap-3">
+          <BrandLogo size={40} priority />
+          <div>
+            <div className="text-[16px] font-semibold">Vectra</div>
+            <div className="text-[12px] text-[var(--text-muted)]">Industrial Monitoring</div>
+          </div>
+        </div>
+        <h1 className="text-[22px] font-semibold">Sign in to your plant</h1>
+        <p className="mt-2 text-[13px] text-[var(--text-secondary)]">
+          Connect a wallet to enter. Google/email need Supabase env keys.
         </p>
-        <ol className="mt-4 list-decimal space-y-2 pl-5 text-[13px] text-[var(--text-secondary)]">
-          <li>
-            Open{" "}
-            <a
-              className="text-[var(--accent)] underline"
-              href="https://supabase.com/dashboard"
-              target="_blank"
-              rel="noreferrer"
-            >
-              supabase.com/dashboard
-            </a>{" "}
-            and create a free project
-          </li>
-          <li>
-            Copy Project URL + anon key into Vercel env vars (see AUTH_SETUP.md)
-          </li>
-          <li>
-            Enable Google under Authentication → Providers
-          </li>
-        </ol>
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => signInWithWallet("phantom")}
+          className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] py-2.5 text-[14px] font-medium hover:bg-[var(--bg-hover)] disabled:opacity-60"
+        >
+          <PhantomIcon />
+          Connect Phantom
+        </button>
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => signInWithWallet("metamask")}
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] py-2.5 text-[14px] font-medium hover:bg-[var(--bg-hover)] disabled:opacity-60"
+        >
+          <MetaMaskIcon />
+          Connect MetaMask
+        </button>
+        {error && <p className="mt-3 text-[12px] text-red-400">{error}</p>}
       </div>
     );
   }
@@ -181,6 +199,25 @@ function LoginForm() {
         >
           <GoogleIcon />
           Continue with Google
+        </button>
+
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => signInWithWallet("phantom")}
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] py-2.5 text-[14px] font-medium hover:bg-[var(--bg-hover)] disabled:opacity-60"
+        >
+          <PhantomIcon />
+          Connect Phantom
+        </button>
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => signInWithWallet("metamask")}
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] py-2.5 text-[14px] font-medium hover:bg-[var(--bg-hover)] disabled:opacity-60"
+        >
+          <MetaMaskIcon />
+          Connect MetaMask
         </button>
 
         <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wide text-[var(--text-muted)]">
@@ -271,6 +308,28 @@ function LoginForm() {
         </p>
       </div>
     </div>
+  );
+}
+
+function PhantomIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 128 128" aria-hidden>
+      <circle cx="64" cy="64" r="64" fill="#AB9FF2" />
+      <path
+        fill="#FFF"
+        d="M110 64.5c0 20-13 36.5-34.5 42.5V85c0-3.5-2-6.5-5-7.8-11.2-4.6-18.7-15.2-18.7-27.2 0-16.5 13.5-30 30-30S110 33.5 110 50v14.5z"
+      />
+    </svg>
+  );
+}
+
+function MetaMaskIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 318 318" aria-hidden>
+      <path fill="#E2761B" d="M274 50L174 124l18.5-43.5L274 50z" />
+      <path fill="#E4761B" d="M44 50l98.5 75-17-44L44 50zm186 129.5l-25.5 39 54.5 15 15.5-53.5-44.5-.5zM27.5 180l15.5 53.5 54.5-15-25.5-39-44.5.5z" />
+      <path fill="#E4761B" d="M97 124l-14 42.5 50-2.5-1.5-54-34.5 14zm124 0l-35-14.5-1 54.5 50 2.5-14-42.5z" />
+    </svg>
   );
 }
 
