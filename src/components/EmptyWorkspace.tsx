@@ -6,7 +6,7 @@ import { useStore } from "@/lib/store";
 
 export function EmptyWorkspace({
   title = "No plant data yet",
-  description = "Import a CSV from Settings, or load example data to walk through the ops loop.",
+  description = "Import an Excel workbook or CSV from Settings, or load example data to walk through the ops loop.",
 }: {
   title?: string;
   description?: string;
@@ -32,7 +32,7 @@ export function EmptyWorkspace({
           className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-white hover:brightness-110"
         >
           <Upload className="h-4 w-4" strokeWidth={1.5} />
-          Import CSV
+          Import data
         </Link>
         <button
           type="button"
