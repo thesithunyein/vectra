@@ -12,6 +12,7 @@ type LogoAsset = {
   height: number;
   className?: string;
   invertOnDark?: boolean;
+  shared?: boolean;
 };
 
 const LOGOS: LogoAsset[] = [
@@ -20,6 +21,7 @@ const LOGOS: LogoAsset[] = [
     dark: "/logos/google.svg",
     width: 72,
     height: 24,
+    shared: true,
   },
   {
     key: "supabase",
@@ -31,6 +33,7 @@ const LOGOS: LogoAsset[] = [
   {
     key: "openai",
     dark: "/logos/openai.svg",
+    light: "/logos/openai.svg",
     width: 88,
     height: 24,
     invertOnDark: true,
@@ -49,17 +52,38 @@ const LOGOS: LogoAsset[] = [
     width: 28,
     height: 28,
     className: "rounded-full",
+    shared: true,
   },
   {
     key: "metamask",
     dark: "/metamask.svg",
     width: 28,
     height: 28,
+    shared: true,
   },
 ];
 
 function MarqueeLogo({ logo }: { logo: LogoAsset }) {
   const lightSrc = logo.light ?? logo.dark;
+
+  if (logo.shared) {
+    return (
+      <div className="relative flex h-7 items-center" style={{ width: logo.width }}>
+        <Image
+          src={logo.dark}
+          alt=""
+          width={logo.width}
+          height={logo.height}
+          aria-hidden
+          unoptimized
+          className={clsx(
+            "marquee-logo marquee-logo--shared absolute left-0 top-1/2 -translate-y-1/2 object-contain",
+            logo.className,
+          )}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex h-7 items-center" style={{ width: logo.width }}>
@@ -71,9 +95,9 @@ function MarqueeLogo({ logo }: { logo: LogoAsset }) {
         aria-hidden
         unoptimized
         className={clsx(
-          "absolute left-0 top-1/2 hidden -translate-y-1/2 object-contain opacity-90 dark:block",
+          "marquee-logo marquee-logo--dark absolute left-0 top-1/2 -translate-y-1/2 object-contain",
           logo.className,
-          logo.invertOnDark && "brightness-0 invert",
+          logo.invertOnDark && "marquee-logo-invert",
         )}
       />
       <Image
@@ -84,7 +108,7 @@ function MarqueeLogo({ logo }: { logo: LogoAsset }) {
         aria-hidden
         unoptimized
         className={clsx(
-          "absolute left-0 top-1/2 -translate-y-1/2 object-contain opacity-90 dark:hidden",
+          "marquee-logo marquee-logo--light absolute left-0 top-1/2 -translate-y-1/2 object-contain",
           logo.className,
         )}
       />

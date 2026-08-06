@@ -114,6 +114,28 @@ body {
   mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
 }
 
+html.dark .marquee-logo--light {
+  display: none;
+}
+
+html.light .marquee-logo--dark {
+  display: none;
+}
+
+html.dark .marquee-logo-invert {
+  filter: brightness(0) invert(1);
+}
+
+html.light .marquee-logo--light,
+html.light .marquee-logo--shared {
+  opacity: 0.72;
+}
+
+html.dark .marquee-logo--dark,
+html.dark .marquee-logo--shared {
+  opacity: 0.88;
+}
+
 .marquee-track {
   animation: marquee-rtl 28s linear infinite;
 }
