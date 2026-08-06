@@ -12,6 +12,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { FaqAccordion } from "@/components/landing/FaqAccordion";
+import { HeroVideoBackdrop } from "@/components/landing/HeroVideoBackdrop";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
@@ -126,16 +127,7 @@ const FAQ = [
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[var(--bg-base)]">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_18%_12%,rgba(167,139,250,0.28),transparent_52%),radial-gradient(ellipse_at_82%_8%,rgba(196,181,253,0.22),transparent_48%),radial-gradient(ellipse_at_50%_92%,rgba(99,102,241,0.12),transparent_55%)] dark:bg-[radial-gradient(ellipse_at_18%_12%,rgba(99,102,241,0.18),transparent_52%),radial-gradient(ellipse_at_82%_8%,rgba(129,140,248,0.14),transparent_48%),radial-gradient(ellipse_at_50%_92%,rgba(59,130,246,0.1),transparent_55%)]" />
-        <div
-          className="absolute inset-0 opacity-[0.35] dark:opacity-[0.2]"
-          style={{
-            backgroundImage: "radial-gradient(circle, var(--border-subtle) 1px, transparent 1px)",
-            backgroundSize: "28px 28px",
-          }}
-        />
-      </div>
+      <HeroVideoBackdrop />
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-3">
@@ -156,11 +148,12 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-6xl px-6 pb-24 pt-16">
+      <main className="relative z-10 mx-auto max-w-6xl px-6 pb-24">
+        <section className="min-h-[calc(100vh-88px)] pb-16 pt-10">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 0.55, ease: [0.2, 0.6, 0.35, 1] }}
           className="max-w-3xl"
         >
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
@@ -186,6 +179,7 @@ export default function LandingPage() {
             </a>
           </div>
         </motion.div>
+        </section>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
