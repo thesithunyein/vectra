@@ -11,6 +11,7 @@
 
 <p align="center">
   <img alt="Live" src="https://img.shields.io/badge/Live-vectra.sithunyein.com-10B981?style=flat-square" />
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-0066FF?style=flat-square" />
   <img alt="AI" src="https://img.shields.io/badge/AI-alert%20briefs-0066FF?style=flat-square" />
   <img alt="Web3" src="https://img.shields.io/badge/Web3-Solana%20attest-9945FF?style=flat-square" />
   <img alt="Stack" src="https://img.shields.io/badge/Stack-Next.js%20·%20Supabase-0A0A0A?style=flat-square" />
@@ -132,6 +133,15 @@ Fund the Solana attestation wallet on [devnet faucet](https://faucet.solana.com)
 
 Auth setup: [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md)
 
+## Project docs
+
+| Document | Description |
+|----------|-------------|
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to develop and open PRs |
+| [SECURITY.md](SECURITY.md) | Vulnerability reporting |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community standards |
+| [LICENSE](LICENSE) | MIT License |
+
 ## Links
 
 | | |
@@ -146,3 +156,7 @@ Auth setup: [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md)
 - **Tagline:** Downtime response and signed shift handoffs  
 - **Mark:** `public/logo.png`  
 - **Accent:** `#0066FF`
+
+## License
+
+MIT © [SITHU NYEIN](https://github.com/thesithunyein). See [LICENSE](LICENSE).
