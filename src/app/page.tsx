@@ -5,19 +5,14 @@ import { motion } from "framer-motion";
 import {
   ArrowRight,
   Bell,
-  CircleHelp,
-  ClipboardCheck,
   Factory,
-  LogIn,
-  Route,
   ShieldCheck,
   Sparkles,
   Users,
+  Wallet,
   Wrench,
 } from "lucide-react";
 import { FaqAccordion } from "@/components/landing/FaqAccordion";
-import { HeroVideoBackdrop } from "@/components/landing/HeroVideoBackdrop";
-import { AuthProviderIcons } from "@/components/landing/ProviderIcons";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
@@ -89,12 +84,6 @@ const CAPABILITIES = [
   },
 ];
 
-const FEATURE_ICONS = [
-  { icon: Bell, label: "Alert briefs" },
-  { icon: ClipboardCheck, label: "Signed handoffs" },
-  { icon: ShieldCheck, label: "Integrity attest" },
-];
-
 const GET_STARTED = [
   "Create your plant account with Google, email, or wallet",
   "Set plant name, timezone, and team access in Settings",
@@ -135,40 +124,18 @@ const FAQ = [
   },
 ];
 
-function IconChip({
-  icon: Icon,
-  label,
-  href,
-}: {
-  icon: typeof Bell;
-  label: string;
-  href?: string;
-}) {
-  const inner = (
-    <span
-      title={label}
-      aria-label={label}
-      className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)]/80 text-[var(--text-secondary)] shadow-[var(--shadow-card)] backdrop-blur-sm transition-all duration-200 hover:border-[var(--border-strong)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
-    >
-      <Icon className="h-[18px] w-[18px]" strokeWidth={1.5} />
-    </span>
-  );
-
-  if (href) {
-    return (
-      <Link href={href} className="inline-flex">
-        {inner}
-      </Link>
-    );
-  }
-
-  return inner;
-}
-
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[var(--bg-base)]">
-      <HeroVideoBackdrop />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-35"
+        style={{
+          backgroundImage:
+            "linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px)",
+          backgroundSize: "64px 64px",
+        }}
+      />
+      <div className="pointer-events-none absolute left-1/2 top-0 h-[520px] w-[720px] -translate-x-1/2 rounded-full bg-[var(--accent-soft)] blur-3xl" />
 
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-3">
@@ -182,88 +149,77 @@ export default function LandingPage() {
           <ThemeToggle />
           <Link
             href="/login"
-            aria-label="Sign in"
-            title="Sign in"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)]/70 text-[var(--text-secondary)] backdrop-blur-sm hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+            className="rounded-lg border border-[var(--border-subtle)] px-4 py-2 text-[13px] hover:bg-[var(--bg-hover)]"
           >
-            <LogIn className="h-4 w-4" strokeWidth={1.5} />
+            Sign in
           </Link>
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-6xl px-6 pb-24">
-        <section className="relative min-h-[calc(100vh-88px)] pb-16 pt-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, ease: [0.2, 0.6, 0.35, 1] }}
-            className="max-w-3xl"
-          >
-            <div className="mb-6 flex items-center gap-2">
-              <IconChip icon={Factory} label="Plant operations" />
-              <IconChip icon={Wrench} label="Maintenance teams" />
-            </div>
-            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-[3.35rem] lg:leading-[1.08]">
-              Downtime response and signed shift handoffs
-            </h1>
-            <p className="mt-5 max-w-2xl text-[17px] leading-relaxed text-[var(--text-secondary)]">
-              Vectra helps Ops Leads and Maintenance Supervisors act on line faults in minutes
-              and leave signed records the night shift and vendors can trust.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-2">
-              {FEATURE_ICONS.map(({ icon, label }) => (
-                <IconChip key={label} icon={icon} label={label} />
-              ))}
-            </div>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-white shadow-lg shadow-[var(--accent-soft)] transition-all duration-200 hover:brightness-110"
+      <main className="relative z-10 mx-auto max-w-6xl px-6 pb-24 pt-16">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="max-w-3xl"
+        >
+          <div className="mb-6 inline-flex items-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-1.5 text-[12px] text-[var(--text-secondary)] shadow-[var(--shadow-card)]">
+            Built for plant Ops and Maintenance
+          </div>
+          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+            Downtime response and signed shift handoffs
+          </h1>
+          <p className="mt-5 max-w-2xl text-[17px] leading-relaxed text-[var(--text-secondary)]">
+            Vectra helps Ops Leads and Maintenance Supervisors act on line faults in minutes
+            and leave signed records the night shift and vendors can trust.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-2">
+            {["Alert briefs", "Signed handoffs", "Integrity attest"].map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-2.5 py-1 text-[11px] text-[var(--text-muted)]"
               >
-                Open console
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <a
-                href="#how-it-works"
-                aria-label="How it works"
-                title="How it works"
-                className="inline-flex h-[42px] w-[42px] items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)]/70 backdrop-blur-sm hover:bg-[var(--bg-hover)]"
-              >
-                <Route className="h-4 w-4" strokeWidth={1.5} />
-              </a>
-            </div>
-          </motion.div>
-        </section>
+                {tag}
+              </span>
+            ))}
+          </div>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-white hover:brightness-110"
+            >
+              Open console
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <a
+              href="#how-it-works"
+              className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-5 py-2.5 text-[14px] hover:bg-[var(--bg-hover)]"
+            >
+              How it works
+            </a>
+          </div>
+        </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.55, ease: [0.2, 0.6, 0.35, 1] }}
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          viewport={{ once: true }}
+          className="mt-20 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
         >
-          {CAPABILITIES.map((s, index) => (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.05, duration: 0.45 }}
-              className="card p-5 backdrop-blur-sm"
-            >
+          {CAPABILITIES.map((s) => (
+            <div key={s.label} className="card p-5">
               <div className="text-[12px] text-[var(--text-muted)]">{s.label}</div>
               <div className="mt-2 text-[22px] font-semibold leading-tight">{s.value}</div>
               <div className="mt-1 text-[12px] text-[var(--text-muted)]">{s.detail}</div>
-            </motion.div>
+            </div>
           ))}
         </motion.div>
 
         <motion.section
           id="how-it-works"
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.55, ease: [0.2, 0.6, 0.35, 1] }}
+          viewport={{ once: true }}
           className="mt-24 scroll-mt-24"
         >
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -279,7 +235,9 @@ export default function LandingPage() {
                 and leave proof the next shift can check.
               </p>
             </div>
-            <IconChip icon={ShieldCheck} label="Shift-to-shift accountability" />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-1.5 text-[11px] text-[var(--text-muted)]">
+              Shift-to-shift accountability
+            </span>
           </div>
 
           <div className="relative mt-10 grid gap-4 lg:grid-cols-2">
@@ -287,11 +245,11 @@ export default function LandingPage() {
             {WORKFLOW.map((step, index) => (
               <motion.div
                 key={step.step}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -14 : 14 }}
+                initial={{ opacity: 0, x: index % 2 === 0 ? -12 : 12 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.06, duration: 0.5, ease: [0.2, 0.6, 0.35, 1] }}
-                className="card relative p-6 backdrop-blur-sm lg:pl-14"
+                transition={{ delay: index * 0.06 }}
+                className="card relative p-6 lg:pl-14"
               >
                 <div className="absolute left-5 top-6 hidden h-3 w-3 rounded-full border-2 border-[var(--accent)] bg-[var(--bg-base)] lg:block" />
                 <div className="mb-4 flex items-center gap-3">
@@ -310,10 +268,9 @@ export default function LandingPage() {
         </motion.section>
 
         <motion.section
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.55, ease: [0.2, 0.6, 0.35, 1] }}
           className="mt-20"
         >
           <h2 className="text-xl font-semibold">Built for the people on the floor</h2>
@@ -321,15 +278,8 @@ export default function LandingPage() {
             Not another BI dashboard — a console shaped around how plants actually run shifts.
           </p>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {PERSONAS.map((persona, index) => (
-              <motion.div
-                key={persona.role}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.06, duration: 0.45 }}
-                className="card p-6 backdrop-blur-sm"
-              >
+            {PERSONAS.map((persona) => (
+              <div key={persona.role} className="card p-6">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--bg-elevated)]">
                   <persona.icon className="h-5 w-5 text-[var(--accent)]" strokeWidth={1.5} />
                 </div>
@@ -337,17 +287,16 @@ export default function LandingPage() {
                 <p className="mt-2 text-[13px] leading-relaxed text-[var(--text-secondary)]">
                   {persona.need}
                 </p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </motion.section>
 
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.55, ease: [0.2, 0.6, 0.35, 1] }}
-          className="mt-20 card overflow-hidden p-8 backdrop-blur-sm"
+          className="mt-20 card overflow-hidden p-8"
         >
           <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
             <div>
@@ -359,9 +308,10 @@ export default function LandingPage() {
                 signed maintenance handoffs.
               </p>
             </div>
-            <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)]/80 p-5 backdrop-blur-sm">
-              <div className="mb-4 flex items-center gap-2">
-                <IconChip icon={Route} label="Getting started" />
+            <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-5">
+              <div className="mb-4 flex items-center gap-2 text-[13px] font-medium">
+                <ShieldCheck className="h-4 w-4 text-[var(--accent)]" strokeWidth={1.5} />
+                Getting started
               </div>
               <ol className="space-y-3">
                 {GET_STARTED.map((step, i) => (
@@ -386,10 +336,9 @@ export default function LandingPage() {
 
         <motion.section
           id="faq"
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.55, ease: [0.2, 0.6, 0.35, 1] }}
           className="mt-24 scroll-mt-24"
         >
           <div className="mb-8 max-w-2xl">
@@ -405,21 +354,23 @@ export default function LandingPage() {
         </motion.section>
 
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.55, ease: [0.2, 0.6, 0.35, 1] }}
-          className="mt-20 flex flex-col items-center rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-b from-[var(--bg-card)]/90 to-[var(--bg-elevated)]/90 px-8 py-12 text-center backdrop-blur-md"
+          className="mt-20 flex flex-col items-center rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-b from-[var(--bg-card)] to-[var(--bg-elevated)] px-8 py-12 text-center"
         >
-          <AuthProviderIcons size={24} />
-          <h2 className="mt-5 text-2xl font-semibold tracking-tight">Run your plant on one console</h2>
+          <div className="mb-4 flex items-center gap-2 text-[12px] text-[var(--text-muted)]">
+            <Wallet className="h-4 w-4" strokeWidth={1.5} />
+            Google · Email · Phantom · MetaMask
+          </div>
+          <h2 className="text-2xl font-semibold tracking-tight">Run your plant on one console</h2>
           <p className="mt-3 max-w-lg text-[14px] text-[var(--text-secondary)]">
             Sign in to set up your workspace, connect lines as they come online, and close
             signed handoffs your next shift can verify.
           </p>
           <Link
             href="/login"
-            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-6 py-2.5 text-[14px] font-medium text-white transition-all duration-200 hover:brightness-110"
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-6 py-2.5 text-[14px] font-medium text-white hover:brightness-110"
           >
             Open Vectra console
             <ArrowRight className="h-4 w-4" />
@@ -427,35 +378,22 @@ export default function LandingPage() {
         </motion.div>
       </main>
 
-      <footer className="relative z-10 border-t border-[var(--border-subtle)] py-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-6">
+      <footer className="relative z-10 border-t border-[var(--border-subtle)] py-8 text-center text-[12px] text-[var(--text-muted)]">
+        <div className="mb-2 flex items-center justify-center gap-2">
           <BrandLogo size={20} />
-          <div className="flex items-center gap-3">
-            <a
-              href="#how-it-works"
-              aria-label="How it works"
-              title="How it works"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border-subtle)] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-secondary)]"
-            >
-              <Route className="h-4 w-4" strokeWidth={1.5} />
-            </a>
-            <a
-              href="#faq"
-              aria-label="FAQ"
-              title="FAQ"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border-subtle)] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-secondary)]"
-            >
-              <CircleHelp className="h-4 w-4" strokeWidth={1.5} />
-            </a>
-            <Link
-              href="/login"
-              aria-label="Sign in"
-              title="Sign in"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border-subtle)] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-secondary)]"
-            >
-              <LogIn className="h-4 w-4" strokeWidth={1.5} />
-            </Link>
-          </div>
+          <span className="font-medium text-[var(--text-secondary)]">Vectra</span>
+        </div>
+        Industrial Monitoring · Built for manufacturing teams
+        <div className="mt-3 flex justify-center gap-4">
+          <a href="#how-it-works" className="hover:text-[var(--text-secondary)]">
+            How it works
+          </a>
+          <a href="#faq" className="hover:text-[var(--text-secondary)]">
+            FAQ
+          </a>
+          <Link href="/login" className="hover:text-[var(--text-secondary)]">
+            Sign in
+          </Link>
         </div>
       </footer>
     </div>
