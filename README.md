@@ -10,10 +10,10 @@
 </p>
 
 <p align="center">
-  <img alt="Integrity" src="https://img.shields.io/badge/Integrity-sealed%20records-0066FF?style=flat-square" />
-  <img alt="Auth" src="https://img.shields.io/badge/Auth-Google%20%2B%20Email-111827?style=flat-square" />
+  <img alt="Live" src="https://img.shields.io/badge/Live-vectra.sithunyein.com-10B981?style=flat-square" />
+  <img alt="AI" src="https://img.shields.io/badge/AI-alert%20briefs-0066FF?style=flat-square" />
+  <img alt="Web3" src="https://img.shields.io/badge/Web3-Solana%20attest-9945FF?style=flat-square" />
   <img alt="Stack" src="https://img.shields.io/badge/Stack-Next.js%20·%20Supabase-0A0A0A?style=flat-square" />
-  <img alt="Status" src="https://img.shields.io/badge/Status-Live-10B981?style=flat-square" />
 </p>
 
 <p align="center">
@@ -24,16 +24,20 @@
 
 ---
 
+## Who it's for
+
+**Ops Leads, Maintenance Supervisors, and night-shift teams** at manufacturing plants — SMT, assembly, packaging — who need to act on line faults in minutes and leave signed handoffs vendors can verify.
+
 ## Why Vectra
 
 Plant teams lose time when downtime is found late and handoffs live in chat threads. Vectra gives Ops and Maintenance one console to:
 
 - Catch **early warnings** from line baseline drift  
-- Draft an **AI brief** (what’s wrong, likely cause, next action) — humans still decide  
-- Close jobs with reason codes  
-- Seal **signed records** and **attest the integrity hash on Solana** so the next shift can verify  
+- Draft an **AI brief** (symptom, likely cause, next action) — humans still decide  
+- Close jobs with reason codes under a signed-in identity  
+- Seal **integrity records** and **attest on Solana** so the next shift can verify  
 
-Real users sign in with **Google** or work email. New workspaces start empty. Example plant data is optional for walkthroughs before machines are connected.
+Sign in with **Google**, work email, or wallet. New workspaces start empty — import your plant via **Excel/CSV**, connect lines as telemetry comes online, or load example data for a walkthrough.
 
 ## Architecture
 
@@ -44,7 +48,7 @@ flowchart LR
   end
 
   subgraph Vectra
-    A[Auth<br/>Google · Email]
+    A[Auth<br/>Google · Email · Wallet]
     C[Live console]
     AI[AI alert brief]
     M[Maintenance close]
@@ -74,10 +78,11 @@ sequenceDiagram
   participant Night as Next shift / vendor
 
   Line->>Vectra: Baseline drift signal
-  Vectra->>User: Early warning alert
+  Vectra->>User: Early warning alert + AI brief
   User->>Vectra: Assign / close maintenance
   Vectra->>Vectra: Seal record under user name
-  Night->>Vectra: Open Records · integrity check
+  Vectra->>Vectra: Anchor hash on Solana
+  Night->>Vectra: Open Records · verify integrity
 ```
 
 ## Features
@@ -91,12 +96,14 @@ sequenceDiagram
 | Maintenance | Close with reason · seals a record |
 | Records | Signed handoffs · integrity check · **Solana proof link** |
 | Reports | Weekly CSV export |
-| Settings | Plant identity, theme, example dataset |
+| Settings | Plant identity, **Excel/CSV import**, theme, example dataset |
 
 ## Stack
 
 - **App:** Next.js · TypeScript · Tailwind · Recharts · Framer Motion  
-- **Auth:** Supabase Auth (Google OAuth + email/password)  
+- **Auth:** Supabase Auth (Google OAuth + email/password + wallet)  
+- **AI:** OpenAI alert briefs (deterministic fallback)  
+- **Web3:** Solana memo attestation on record close  
 - **Deploy:** Vercel · [vectra.sithunyein.com](https://vectra.sithunyein.com)
 
 ## Quick start
@@ -129,12 +136,13 @@ Auth setup: [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md)
 
 | | |
 |--|--|
-| Product | https://vectra.sithunyein.com |
-| Repository | https://github.com/thesithunyein/vectra |
+| **Live product** | https://vectra.sithunyein.com |
+| **Repository** | https://github.com/thesithunyein/vectra |
 
 ## Brand
 
 - **Name:** Vectra  
 - **Subtitle:** Industrial Monitoring  
+- **Tagline:** Downtime response and signed shift handoffs  
 - **Mark:** `public/logo.png`  
 - **Accent:** `#0066FF`

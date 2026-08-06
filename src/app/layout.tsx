@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s · Vectra",
   },
   description:
-    "Vectra Industrial Monitoring. Downtime response and shift handoffs for manufacturing plants.",
+    "Industrial Monitoring — Downtime response and signed shift handoffs for manufacturing plants.",
   icons: {
     icon: [{ url: "/logo.png", type: "image/png" }],
     apple: [{ url: "/logo.png" }],
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Vectra",
     description:
-      "Industrial monitoring for downtime response and signed shift handoffs.",
+      "Downtime response and signed shift handoffs for manufacturing plants. AI alert briefs and Solana record attestation.",
     images: ["/logo.png"],
   },
 };

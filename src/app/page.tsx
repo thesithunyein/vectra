@@ -87,8 +87,8 @@ const CAPABILITIES = [
 
 const GET_STARTED = [
   "Create your plant account with Google, email, or wallet",
-  "Set plant name, timezone, and team access in Settings",
-  "Connect lines as telemetry comes online",
+  "Set plant name, site, and role in Settings",
+  "Import machines via Excel/CSV or connect lines as telemetry comes online",
   "Close maintenance → signed record with integrity seal",
 ];
 
@@ -116,7 +116,7 @@ const FAQ = [
   {
     question: "When does my plant data appear?",
     answer:
-      "Your workspace starts with your plant profile. Devices, alerts, and records populate as lines connect and your team works jobs — the console reflects live plant activity, not canned scenarios.",
+      "Your workspace starts with your plant profile. Import machines, alerts, and maintenance from Excel or CSV in Settings, connect lines as telemetry comes online, or load example data to walk through the console.",
   },
   {
     question: "Who is accountable for a closed record?",
@@ -342,8 +342,8 @@ export default function LandingPage() {
         >
           <h2 className="text-2xl font-semibold tracking-tight">Run your plant on one console</h2>
           <p className="mt-3 max-w-lg text-[14px] text-[var(--text-secondary)]">
-            Sign in to set up your workspace, connect lines as they come online, and close
-            signed handoffs your next shift can verify.
+            Sign in to set up your workspace, import your plant or connect lines, and close signed
+            handoffs your next shift can verify.
           </p>
           <Link
             href="/login"
