@@ -9,8 +9,10 @@ import { ImportPlantData } from "@/components/settings/ImportPlantData";
 import { ConnectLinePanel } from "@/components/settings/ConnectLinePanel";
 import { TeamPanel } from "@/components/settings/TeamPanel";
 
+import { createPlantTeam } from "@/lib/plant-cloud";
+
 export default function SettingsPage() {
-  const { user, updateWorkspace, readOnly, tenant, plantRole } = useAuth();
+  const { user, updateWorkspace, readOnly, tenant, plantRole, refreshTenant } = useAuth();
   const { usingSample, hasPlantData, loadSamplePlant, clearPlantData } = useStore();
   const [plant, setPlant] = useState("");
   const [plantSite, setPlantSite] = useState("");
@@ -37,6 +39,11 @@ export default function SettingsPage() {
     });
     setSaved(true);
     window.setTimeout(() => setSaved(false), 2000);
+    if (!tenant && !readOnly) {
+      void createPlantTeam(plant.trim() || "My plant", plantSite.trim() || "Site not set").then(
+        () => refreshTenant()
+      );
+    }
   }
 
   return (

@@ -87,5 +87,15 @@ export async function POST(request: Request) {
     body.site?.trim() || ws.plantSite
   );
 
+  if (scope.mode !== "tenant" || !scope.tenant) {
+    return NextResponse.json(
+      {
+        error:
+          "Could not create plant team. Run supabase/schema-v2-tenants.sql in Supabase SQL Editor, then try again.",
+      },
+      { status: 500 }
+    );
+  }
+
   return NextResponse.json({ tenant: scope.tenant, role: scope.role });
 }

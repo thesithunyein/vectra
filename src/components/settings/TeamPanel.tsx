@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Copy, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { isCloudUserId } from "@/lib/plant-db";
-import { fetchTenantInfo, joinPlantTeam } from "@/lib/plant-cloud";
+import { createPlantTeam, fetchTenantInfo, joinPlantTeam } from "@/lib/plant-cloud";
+import { getAppUrl } from "@/lib/auth";
 import { useStore } from "@/lib/store";
 import {
   canManageTeam,
@@ -19,8 +20,9 @@ export function TeamPanel() {
   const { user, plantRole, tenant, refreshTenant } = useAuth();
   const { refreshFromCloud } = useStore();
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
-  const [inviteCode, setInviteCode] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [joinCode, setJoinCode] = useState("");
   const [joinRole, setJoinRole] = useState<PlantRole>("maintenance");
   const [joining, setJoining] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -42,28 +44,48 @@ export function TeamPanel() {
     void load();
   }, [load, tenant]);
 
-  function copyInvite(code: string) {
-    void navigator.clipboard.writeText(code);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2000);
+  function copyText(label: string, text: string) {
+    void navigator.clipboard.writeText(text);
+    setCopied(label);
+    window.setTimeout(() => setCopied(null), 2000);
+  }
+
+  async function handleCreateTeam() {
+    if (!user) return;
+    setCreating(true);
+    setMessage(null);
+    const result = await createPlantTeam(user.plant, user.plantSite);
+    if (result.ok && result.tenant) {
+      setLocalTenant(result.tenant);
+      await refreshTenant();
+      await refreshFromCloud();
+      setMessage(`Plant team created. Share invite code ${result.tenant.inviteCode} with your shift.`);
+    } else {
+      setMessage(result.error ?? "Could not create plant team.");
+    }
+    setCreating(false);
   }
 
   async function handleJoin() {
-    if (!inviteCode.trim()) return;
+    if (!joinCode.trim()) return;
     setJoining(true);
     setMessage(null);
-    const result = await joinPlantTeam(inviteCode.trim(), joinRole);
+    const result = await joinPlantTeam(joinCode.trim(), joinRole);
     if (result.ok && result.tenant) {
       setLocalTenant(result.tenant);
       await refreshTenant();
       await refreshFromCloud();
       setMessage(`Joined ${result.tenant.name} as ${roleLabel(result.tenant.role)}.`);
-      setInviteCode("");
+      setJoinCode("");
     } else {
       setMessage(result.error ?? "Could not join plant team.");
     }
     setJoining(false);
   }
+
+  const inviteLink = activeTenant
+    ? `${getAppUrl().replace(/\/$/, "")}/settings?join=${activeTenant.inviteCode}`
+    : "";
 
   if (!cloudUser) {
     return (
@@ -113,24 +135,44 @@ export function TeamPanel() {
           </div>
 
           {canManageTeam(role) && (
-            <div>
-              <div className="text-[12px] text-[var(--text-muted)]">Invite code</div>
-              <div className="mt-1 flex flex-wrap items-center gap-2">
-                <code className="rounded-lg bg-[var(--bg-elevated)] px-3 py-2 text-[12px] tracking-widest">
-                  {activeTenant.inviteCode}
-                </code>
-                <button
-                  type="button"
-                  onClick={() => copyInvite(activeTenant.inviteCode)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-[var(--border-strong)] px-2.5 py-1.5 text-[11px] hover:bg-[var(--bg-hover)]"
-                >
-                  <Copy className="h-3 w-3" />
-                  {copied ? "Copied" : "Copy code"}
-                </button>
+            <div className="space-y-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-4">
+              <div>
+                <div className="text-[12px] text-[var(--text-muted)]">Your invite code</div>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <code className="rounded-lg bg-[var(--bg-base)] px-3 py-2 text-[14px] font-medium tracking-widest">
+                    {activeTenant.inviteCode}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => copyText("code", activeTenant.inviteCode)}
+                    className="inline-flex items-center gap-1 rounded-lg border border-[var(--border-strong)] px-2.5 py-1.5 text-[11px] hover:bg-[var(--bg-hover)]"
+                  >
+                    <Copy className="h-3 w-3" />
+                    {copied === "code" ? "Copied" : "Copy code"}
+                  </button>
+                </div>
               </div>
-              <p className="mt-2 text-[12px] text-[var(--text-muted)]">
-                Teammates join in Settings → Plant team with this code. Vendors get read-only
-                console access.
+              {inviteLink && (
+                <div>
+                  <div className="text-[12px] text-[var(--text-muted)]">Invite link</div>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <code className="max-w-full truncate rounded-lg bg-[var(--bg-base)] px-3 py-2 text-[11px]">
+                      {inviteLink}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => copyText("link", inviteLink)}
+                      className="inline-flex items-center gap-1 rounded-lg border border-[var(--border-strong)] px-2.5 py-1.5 text-[11px] hover:bg-[var(--bg-hover)]"
+                    >
+                      <Copy className="h-3 w-3" />
+                      {copied === "link" ? "Copied" : "Copy link"}
+                    </button>
+                  </div>
+                </div>
+              )}
+              <p className="text-[12px] text-[var(--text-muted)]">
+                Teammates open Settings → Plant team, paste the code, pick a role, and tap Join
+                plant.
               </p>
             </div>
           )}
@@ -143,19 +185,34 @@ export function TeamPanel() {
           )}
         </div>
       ) : (
-        <p className="mt-4 text-[13px] text-[var(--text-secondary)]">
-          Save your plant workspace to auto-create a team, or join an existing plant below.
-        </p>
+        <div className="mt-4 space-y-3">
+          <p className="text-[13px] text-[var(--text-secondary)]">
+            You are the plant owner. Create your team once — Vectra generates an invite code you
+            share with ops, maintenance, and vendors.
+          </p>
+          <button
+            type="button"
+            disabled={creating}
+            onClick={() => void handleCreateTeam()}
+            className="rounded-lg bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-white hover:brightness-110 disabled:opacity-40"
+          >
+            {creating ? "Creating…" : "Create plant team & get invite code"}
+          </button>
+          <p className="text-[12px] text-[var(--text-muted)]">
+            Uses plant name & site from workspace above ({user.plant || "My plant"} ·{" "}
+            {user.plantSite || "Site not set"}). Save workspace first if you changed them.
+          </p>
+        </div>
       )}
 
       <div className="mt-5 border-t border-[var(--border-subtle)] pt-4">
-        <div className="text-[13px] font-medium">Join a plant</div>
+        <div className="text-[13px] font-medium">Join someone else&apos;s plant</div>
         <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
           <label className="block flex-1">
             <span className="text-[12px] text-[var(--text-muted)]">Invite code</span>
             <input
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
               placeholder="ABCD1234"
               className="mt-1 w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2 text-[13px] uppercase outline-none focus:border-[var(--accent)]"
             />
@@ -176,14 +233,20 @@ export function TeamPanel() {
           </label>
           <button
             type="button"
-            disabled={joining || !inviteCode.trim()}
+            disabled={joining || !joinCode.trim()}
             onClick={() => void handleJoin()}
-            className="rounded-lg bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-white hover:brightness-110 disabled:opacity-40"
+            className="rounded-lg border border-[var(--border-strong)] px-4 py-2 text-[13px] hover:bg-[var(--bg-hover)] disabled:opacity-40"
           >
             {joining ? "Joining…" : "Join plant"}
           </button>
         </div>
-        {message && <p className="mt-2 text-[12px] text-[var(--text-secondary)]">{message}</p>}
+        {message && (
+          <p
+            className={`mt-2 text-[12px] ${message.includes("missing") || message.includes("Could not") ? "text-amber-400" : "text-[var(--text-secondary)]"}`}
+          >
+            {message}
+          </p>
+        )}
       </div>
     </div>
   );

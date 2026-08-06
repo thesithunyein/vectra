@@ -104,6 +104,35 @@ export async function fetchTenantInfo(): Promise<{
   }
 }
 
+export async function createPlantTeam(
+  plant?: string,
+  site?: string
+): Promise<{ ok: boolean; error?: string; tenant?: PlantTenant; role?: PlantRole }> {
+  try {
+    const res = await fetch("/api/tenant", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plant, site }),
+    });
+    const data = (await res.json()) as {
+      tenant?: PlantTenant;
+      role?: PlantRole;
+      error?: string;
+    };
+    if (!res.ok) return { ok: false, error: data.error ?? "Could not create plant team." };
+    if (!data.tenant) {
+      return {
+        ok: false,
+        error:
+          "Plant team tables missing. Run supabase/schema-v2-tenants.sql in Supabase SQL Editor, then try again.",
+      };
+    }
+    return { ok: true, tenant: data.tenant, role: data.role };
+  } catch {
+    return { ok: false, error: "Network error" };
+  }
+}
+
 export async function joinPlantTeam(
   inviteCode: string,
   role: PlantRole = "maintenance"
