@@ -26,6 +26,7 @@ export function TeamPanel() {
   const [joinRole, setJoinRole] = useState<PlantRole>("maintenance");
   const [joining, setJoining] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [setupUrl, setSetupUrl] = useState<string | null>(null);
   const [localTenant, setLocalTenant] = useState<PlantTenant | null>(tenant);
 
   const cloudUser = user && isCloudUserId(user.id);
@@ -62,6 +63,7 @@ export function TeamPanel() {
       setMessage(`Plant team created. Share invite code ${result.tenant.inviteCode} with your shift.`);
     } else {
       setMessage(result.error ?? "Could not create plant team.");
+      setSetupUrl(result.setupUrl ?? null);
     }
     setCreating(false);
   }
@@ -241,11 +243,42 @@ export function TeamPanel() {
           </button>
         </div>
         {message && (
-          <p
-            className={`mt-2 text-[12px] ${message.includes("missing") || message.includes("Could not") ? "text-amber-400" : "text-[var(--text-secondary)]"}`}
-          >
-            {message}
-          </p>
+          <div className="mt-2 space-y-2">
+            <p
+              className={`text-[12px] ${message.includes("not in Supabase") || message.includes("Could not") ? "text-amber-400" : "text-[var(--text-secondary)]"}`}
+            >
+              {message}
+            </p>
+            {(setupUrl || message.includes("not in Supabase")) && (
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-[12px] text-[var(--text-secondary)]">
+                <p className="font-medium text-amber-400">One-time database setup (2 min)</p>
+                <ol className="mt-2 list-decimal space-y-1 pl-4">
+                  <li>
+                    Open{" "}
+                    <a
+                      href={
+                        setupUrl ??
+                        "https://supabase.com/dashboard/project/ahaousuahjwavkmaezdu/sql/new"
+                      }
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[var(--accent)] underline"
+                    >
+                      Supabase SQL Editor
+                    </a>
+                  </li>
+                  <li>
+                    Copy{" "}
+                    <a href="/setup-v2.sql" target="_blank" rel="noreferrer" className="text-[var(--accent)] underline">
+                      setup-v2.sql
+                    </a>{" "}
+                    → paste → Run
+                  </li>
+                  <li>Return here and click Create plant team again</li>
+                </ol>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>

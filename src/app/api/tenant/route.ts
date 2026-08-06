@@ -88,10 +88,18 @@ export async function POST(request: Request) {
   );
 
   if (scope.mode !== "tenant" || !scope.tenant) {
+    const detail =
+      scope.error === "schema_missing"
+        ? "Tenant tables are not in Supabase yet. Run the one-time SQL setup below."
+        : scope.error
+          ? scope.error
+          : "Could not create plant team.";
     return NextResponse.json(
       {
-        error:
-          "Could not create plant team. Run supabase/schema-v2-tenants.sql in Supabase SQL Editor, then try again.",
+        error: detail,
+        setupUrl:
+          "https://supabase.com/dashboard/project/ahaousuahjwavkmaezdu/sql/new",
+        schemaFile: "supabase/schema-v2-tenants.sql",
       },
       { status: 500 }
     );

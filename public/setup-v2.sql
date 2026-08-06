@@ -1,9 +1,8 @@
--- Vectra v2: multi-tenant plant ops + MQTT-ready telemetry
--- Safe to re-run (idempotent). Run AFTER schema.sql in Supabase SQL Editor.
+-- Vectra v2 tenant tables (paste into Supabase SQL Editor → Run)
+-- Dashboard: https://supabase.com/dashboard/project/ahaousuahjwavkmaezdu/sql/new
 
 create extension if not exists "pgcrypto";
 
--- Tables
 create table if not exists public.plant_tenants (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -53,14 +52,12 @@ create table if not exists public.plant_tenant_telemetry_log (
 create index if not exists plant_tenant_telemetry_created
   on public.plant_tenant_telemetry_log (tenant_id, created_at desc);
 
--- RLS
 alter table public.plant_tenants enable row level security;
 alter table public.plant_members enable row level security;
 alter table public.plant_tenant_workspaces enable row level security;
 alter table public.plant_tenant_api_keys enable row level security;
 alter table public.plant_tenant_telemetry_log enable row level security;
 
--- Policies (drop + recreate for idempotency)
 drop policy if exists "Members read tenant" on public.plant_tenants;
 drop policy if exists "Owner updates tenant" on public.plant_tenants;
 drop policy if exists "Users create tenant" on public.plant_tenants;
@@ -74,109 +71,37 @@ drop policy if exists "Members read tenant api key metadata" on public.plant_ten
 drop policy if exists "Owner manages tenant api key" on public.plant_tenant_api_keys;
 drop policy if exists "Members read tenant telemetry log" on public.plant_tenant_telemetry_log;
 
-create policy "Members read tenant"
-  on public.plant_tenants for select
-  using (
-    exists (
-      select 1 from public.plant_members m
-      where m.tenant_id = plant_tenants.id and m.user_id = auth.uid()
-    )
-  );
+create policy "Members read tenant" on public.plant_tenants for select using (
+  exists (select 1 from public.plant_members m where m.tenant_id = plant_tenants.id and m.user_id = auth.uid())
+);
+create policy "Owner updates tenant" on public.plant_tenants for update using (owner_user_id = auth.uid());
+create policy "Users create tenant" on public.plant_tenants for insert with check (owner_user_id = auth.uid());
+create policy "Members read membership" on public.plant_members for select using (
+  user_id = auth.uid() or exists (select 1 from public.plant_members m where m.tenant_id = plant_members.tenant_id and m.user_id = auth.uid())
+);
+create policy "Owner inserts members" on public.plant_members for insert with check (
+  exists (select 1 from public.plant_tenants t where t.id = tenant_id and t.owner_user_id = auth.uid()) or user_id = auth.uid()
+);
+create policy "Members read tenant workspace" on public.plant_tenant_workspaces for select using (
+  exists (select 1 from public.plant_members m where m.tenant_id = plant_tenant_workspaces.tenant_id and m.user_id = auth.uid())
+);
+create policy "Non-vendor upsert tenant workspace" on public.plant_tenant_workspaces for insert with check (
+  exists (select 1 from public.plant_members m where m.tenant_id = plant_tenant_workspaces.tenant_id and m.user_id = auth.uid() and m.role in ('owner', 'ops_lead', 'maintenance'))
+);
+create policy "Non-vendor update tenant workspace" on public.plant_tenant_workspaces for update using (
+  exists (select 1 from public.plant_members m where m.tenant_id = plant_tenant_workspaces.tenant_id and m.user_id = auth.uid() and m.role in ('owner', 'ops_lead', 'maintenance'))
+);
+create policy "Owner deletes tenant workspace" on public.plant_tenant_workspaces for delete using (
+  exists (select 1 from public.plant_tenants t where t.id = plant_tenant_workspaces.tenant_id and t.owner_user_id = auth.uid())
+);
+create policy "Members read tenant api key metadata" on public.plant_tenant_api_keys for select using (
+  exists (select 1 from public.plant_members m where m.tenant_id = plant_tenant_api_keys.tenant_id and m.user_id = auth.uid())
+);
+create policy "Owner manages tenant api key" on public.plant_tenant_api_keys for all using (
+  exists (select 1 from public.plant_tenants t where t.id = plant_tenant_api_keys.tenant_id and t.owner_user_id = auth.uid())
+);
+create policy "Members read tenant telemetry log" on public.plant_tenant_telemetry_log for select using (
+  exists (select 1 from public.plant_members m where m.tenant_id = plant_tenant_telemetry_log.tenant_id and m.user_id = auth.uid())
+);
 
-create policy "Owner updates tenant"
-  on public.plant_tenants for update
-  using (owner_user_id = auth.uid());
-
-create policy "Users create tenant"
-  on public.plant_tenants for insert
-  with check (owner_user_id = auth.uid());
-
-create policy "Members read membership"
-  on public.plant_members for select
-  using (
-    user_id = auth.uid()
-    or exists (
-      select 1 from public.plant_members m
-      where m.tenant_id = plant_members.tenant_id and m.user_id = auth.uid()
-    )
-  );
-
-create policy "Owner inserts members"
-  on public.plant_members for insert
-  with check (
-    exists (
-      select 1 from public.plant_tenants t
-      where t.id = tenant_id and t.owner_user_id = auth.uid()
-    )
-    or user_id = auth.uid()
-  );
-
-create policy "Members read tenant workspace"
-  on public.plant_tenant_workspaces for select
-  using (
-    exists (
-      select 1 from public.plant_members m
-      where m.tenant_id = plant_tenant_workspaces.tenant_id and m.user_id = auth.uid()
-    )
-  );
-
-create policy "Non-vendor upsert tenant workspace"
-  on public.plant_tenant_workspaces for insert
-  with check (
-    exists (
-      select 1 from public.plant_members m
-      where m.tenant_id = plant_tenant_workspaces.tenant_id
-        and m.user_id = auth.uid()
-        and m.role in ('owner', 'ops_lead', 'maintenance')
-    )
-  );
-
-create policy "Non-vendor update tenant workspace"
-  on public.plant_tenant_workspaces for update
-  using (
-    exists (
-      select 1 from public.plant_members m
-      where m.tenant_id = plant_tenant_workspaces.tenant_id
-        and m.user_id = auth.uid()
-        and m.role in ('owner', 'ops_lead', 'maintenance')
-    )
-  );
-
-create policy "Owner deletes tenant workspace"
-  on public.plant_tenant_workspaces for delete
-  using (
-    exists (
-      select 1 from public.plant_tenants t
-      where t.id = plant_tenant_workspaces.tenant_id and t.owner_user_id = auth.uid()
-    )
-  );
-
-create policy "Members read tenant api key metadata"
-  on public.plant_tenant_api_keys for select
-  using (
-    exists (
-      select 1 from public.plant_members m
-      where m.tenant_id = plant_tenant_api_keys.tenant_id and m.user_id = auth.uid()
-    )
-  );
-
-create policy "Owner manages tenant api key"
-  on public.plant_tenant_api_keys for all
-  using (
-    exists (
-      select 1 from public.plant_tenants t
-      where t.id = plant_tenant_api_keys.tenant_id and t.owner_user_id = auth.uid()
-    )
-  );
-
-create policy "Members read tenant telemetry log"
-  on public.plant_tenant_telemetry_log for select
-  using (
-    exists (
-      select 1 from public.plant_members m
-      where m.tenant_id = plant_tenant_telemetry_log.tenant_id and m.user_id = auth.uid()
-    )
-  );
-
--- Reload PostgREST schema cache
 notify pgrst, 'reload schema';

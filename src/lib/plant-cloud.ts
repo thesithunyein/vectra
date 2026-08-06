@@ -107,7 +107,13 @@ export async function fetchTenantInfo(): Promise<{
 export async function createPlantTeam(
   plant?: string,
   site?: string
-): Promise<{ ok: boolean; error?: string; tenant?: PlantTenant; role?: PlantRole }> {
+): Promise<{
+  ok: boolean;
+  error?: string;
+  tenant?: PlantTenant;
+  role?: PlantRole;
+  setupUrl?: string;
+}> {
   try {
     const res = await fetch("/api/tenant", {
       method: "POST",
@@ -118,13 +124,20 @@ export async function createPlantTeam(
       tenant?: PlantTenant;
       role?: PlantRole;
       error?: string;
+      setupUrl?: string;
     };
-    if (!res.ok) return { ok: false, error: data.error ?? "Could not create plant team." };
+    if (!res.ok) {
+      return {
+        ok: false,
+        error: data.error ?? "Could not create plant team.",
+        setupUrl: data.setupUrl,
+      };
+    }
     if (!data.tenant) {
       return {
         ok: false,
-        error:
-          "Plant team tables missing. Run supabase/schema-v2-tenants.sql in Supabase SQL Editor, then try again.",
+        error: data.error ?? "Could not create plant team.",
+        setupUrl: data.setupUrl,
       };
     }
     return { ok: true, tenant: data.tenant, role: data.role };

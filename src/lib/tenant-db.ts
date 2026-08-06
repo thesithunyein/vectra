@@ -74,12 +74,12 @@ export async function ensureTenantForUser(
   userId: string,
   plantName: string,
   plantSite: string
-): Promise<PlantScope> {
+): Promise<PlantScope & { error?: string }> {
   const existing = await resolvePlantScope(admin, userId);
   if (existing.mode === "tenant") return existing;
 
   const inviteCode = generateInviteCode();
-  const { data: tenant, error } = await admin
+  const { data: tenant, error: tenantError } = await admin
     .from("plant_tenants")
     .insert({
       name: plantName,
@@ -90,15 +90,32 @@ export async function ensureTenantForUser(
     .select("id, name, site, invite_code")
     .single();
 
-  if (error || !tenant) {
-    return { mode: "user", scopeId: userId, role: "owner" };
+  if (tenantError) {
+    const msg = tenantError.message ?? "";
+    if (msg.includes("plant_tenants") && (msg.includes("Could not find") || msg.includes("does not exist"))) {
+      return {
+        mode: "user",
+        scopeId: userId,
+        role: "owner",
+        error: "schema_missing",
+      };
+    }
+    return { mode: "user", scopeId: userId, role: "owner", error: msg };
   }
 
-  await admin.from("plant_members").insert({
+  if (!tenant) {
+    return { mode: "user", scopeId: userId, role: "owner", error: "insert_failed" };
+  }
+
+  const { error: memberError } = await admin.from("plant_members").insert({
     tenant_id: tenant.id,
     user_id: userId,
     role: "owner",
   });
+
+  if (memberError) {
+    return { mode: "user", scopeId: userId, role: "owner", error: memberError.message };
+  }
 
   // Migrate solo user workspace if present
   const { data: solo } = await admin
