@@ -9,7 +9,6 @@ import {
   ShieldCheck,
   Sparkles,
   Users,
-  Wallet,
   Wrench,
 } from "lucide-react";
 import { FaqAccordion } from "@/components/landing/FaqAccordion";
@@ -163,9 +162,6 @@ export default function LandingPage() {
           transition={{ duration: 0.4 }}
           className="max-w-3xl"
         >
-          <div className="mb-6 inline-flex items-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-1.5 text-[12px] text-[var(--text-secondary)] shadow-[var(--shadow-card)]">
-            Built for plant Ops and Maintenance
-          </div>
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
             Downtime response and signed shift handoffs
           </h1>
@@ -173,16 +169,6 @@ export default function LandingPage() {
             Vectra helps Ops Leads and Maintenance Supervisors act on line faults in minutes
             and leave signed records the night shift and vendors can trust.
           </p>
-          <div className="mt-6 flex flex-wrap gap-2">
-            {["Alert briefs", "Signed handoffs", "Integrity attest"].map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-2.5 py-1 text-[11px] text-[var(--text-muted)]"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/login"
@@ -359,10 +345,6 @@ export default function LandingPage() {
           viewport={{ once: true }}
           className="mt-20 flex flex-col items-center rounded-2xl border border-[var(--border-subtle)] bg-gradient-to-b from-[var(--bg-card)] to-[var(--bg-elevated)] px-8 py-12 text-center"
         >
-          <div className="mb-4 flex items-center gap-2 text-[12px] text-[var(--text-muted)]">
-            <Wallet className="h-4 w-4" strokeWidth={1.5} />
-            Google · Email · Phantom · MetaMask
-          </div>
           <h2 className="text-2xl font-semibold tracking-tight">Run your plant on one console</h2>
           <p className="mt-3 max-w-lg text-[14px] text-[var(--text-secondary)]">
             Sign in to set up your workspace, connect lines as they come online, and close
@@ -379,21 +361,9 @@ export default function LandingPage() {
       </main>
 
       <footer className="relative z-10 border-t border-[var(--border-subtle)] py-8 text-center text-[12px] text-[var(--text-muted)]">
-        <div className="mb-2 flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-2">
           <BrandLogo size={20} />
           <span className="font-medium text-[var(--text-secondary)]">Vectra</span>
-        </div>
-        Industrial Monitoring · Built for manufacturing teams
-        <div className="mt-3 flex justify-center gap-4">
-          <a href="#how-it-works" className="hover:text-[var(--text-secondary)]">
-            How it works
-          </a>
-          <a href="#faq" className="hover:text-[var(--text-secondary)]">
-            FAQ
-          </a>
-          <Link href="/login" className="hover:text-[var(--text-secondary)]">
-            Sign in
-          </Link>
         </div>
       </footer>
     </div>
