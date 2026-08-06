@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -313,23 +314,29 @@ function LoginForm() {
 
 function PhantomIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 128 128" aria-hidden>
-      <circle cx="64" cy="64" r="64" fill="#AB9FF2" />
-      <path
-        fill="#FFF"
-        d="M110 64.5c0 20-13 36.5-34.5 42.5V85c0-3.5-2-6.5-5-7.8-11.2-4.6-18.7-15.2-18.7-27.2 0-16.5 13.5-30 30-30S110 33.5 110 50v14.5z"
-      />
-    </svg>
+    <Image
+      src="/phantom.svg"
+      alt=""
+      width={20}
+      height={20}
+      aria-hidden
+      unoptimized
+      className="shrink-0 rounded-full"
+    />
   );
 }
 
 function MetaMaskIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 318 318" aria-hidden>
-      <path fill="#E2761B" d="M274 50L174 124l18.5-43.5L274 50z" />
-      <path fill="#E4761B" d="M44 50l98.5 75-17-44L44 50zm186 129.5l-25.5 39 54.5 15 15.5-53.5-44.5-.5zM27.5 180l15.5 53.5 54.5-15-25.5-39-44.5.5z" />
-      <path fill="#E4761B" d="M97 124l-14 42.5 50-2.5-1.5-54-34.5 14zm124 0l-35-14.5-1 54.5 50 2.5-14-42.5z" />
-    </svg>
+    <Image
+      src="/metamask.svg"
+      alt=""
+      width={20}
+      height={20}
+      aria-hidden
+      unoptimized
+      className="shrink-0"
+    />
   );
 }
 
