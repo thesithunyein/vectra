@@ -6,6 +6,7 @@ import { PageTransition } from "@/components/motion/PageTransition";
 import { useAuth } from "@/lib/auth-context";
 import { useStore } from "@/lib/store";
 import { ImportPlantData } from "@/components/settings/ImportPlantData";
+import { ConnectLinePanel } from "@/components/settings/ConnectLinePanel";
 
 export default function SettingsPage() {
   const { user, updateWorkspace } = useAuth();
@@ -119,6 +120,8 @@ export default function SettingsPage() {
           </div>
 
           <ImportPlantData />
+
+          <ConnectLinePanel />
 
           <div className="card p-6">
             <h3 className="text-[15px] font-medium">Example plant data</h3>

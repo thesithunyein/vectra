@@ -85,10 +85,17 @@ const CAPABILITIES = [
   },
 ];
 
+const INDUSTRIAL_PILLS = [
+  "AI-assisted triage",
+  "Human-signed close-out",
+  "Verifiable handoff",
+  "Cloud-native console",
+];
+
 const GET_STARTED = [
   "Create your plant account with Google, email, or wallet",
   "Set plant name, site, and role in Settings",
-  "Import machines via Excel/CSV or connect lines as telemetry comes online",
+  "Import machines via Excel/CSV or connect lines via telemetry API",
   "Close maintenance → signed record with integrity seal",
 ];
 
@@ -116,7 +123,7 @@ const FAQ = [
   {
     question: "When does my plant data appear?",
     answer:
-      "Your workspace starts with your plant profile. Import machines, alerts, and maintenance from Excel or CSV in Settings, connect lines as telemetry comes online, or load example data to walk through the console.",
+      "Your workspace starts with your plant profile. Import from Excel/CSV, connect lines via the telemetry API in Settings, or load example data to walk through the console.",
   },
   {
     question: "Who is accountable for a closed record?",
@@ -164,7 +171,17 @@ export default function LandingPage() {
             Vectra helps Ops Leads and Maintenance Supervisors act on line faults in minutes
             and leave signed records the night shift and vendors can trust.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-wrap gap-2">
+            {INDUSTRIAL_PILLS.map((pill) => (
+              <span
+                key={pill}
+                className="rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)]/80 px-3 py-1 text-[11px] text-[var(--text-secondary)] backdrop-blur-sm"
+              >
+                {pill}
+              </span>
+            ))}
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/login"
               className="inline-flex items-center gap-2 rounded-lg bg-[var(--accent)] px-5 py-2.5 text-[14px] font-medium text-white hover:brightness-110"

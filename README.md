@@ -97,14 +97,16 @@ sequenceDiagram
 | Maintenance | Close with reason · seals a record |
 | Records | Signed handoffs · integrity check · **Solana proof link** |
 | Reports | Weekly CSV export |
-| Settings | Plant identity, **Excel/CSV import**, theme, example dataset |
+| Settings | Plant identity, **Excel/CSV import**, **telemetry API**, cloud sync, example dataset |
 
 ## Stack
 
 - **App:** Next.js · TypeScript · Tailwind · Recharts · Framer Motion  
 - **Auth:** Supabase Auth (Google OAuth + email/password + wallet)  
+- **Data:** Supabase Postgres (plant workspace + telemetry log)  
 - **AI:** OpenAI alert briefs (deterministic fallback)  
 - **Web3:** Solana memo attestation on record close  
+- **Ingest:** `POST /api/telemetry/ingest` (HTTP → drift alerts)  
 - **Deploy:** Vercel · [vectra.sithunyein.com](https://vectra.sithunyein.com)
 
 ## Quick start
@@ -124,6 +126,7 @@ NEXT_PUBLIC_APP_NAME=Vectra
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...        # server only — cloud plant + telemetry
 OPENAI_API_KEY=...                 # server only — AI briefs
 SOLANA_SECRET_KEY=[...]            # server only — JSON byte array keypair
 NEXT_PUBLIC_SOLANA_CLUSTER=devnet
@@ -131,7 +134,9 @@ NEXT_PUBLIC_SOLANA_CLUSTER=devnet
 
 Fund the Solana attestation wallet on [devnet faucet](https://faucet.solana.com) before closing maintenance records.
 
-Auth setup: [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md)
+Auth setup: [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md)  
+Plant data + telemetry: [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md)  
+Pilot roadmap: [docs/PILOT.md](docs/PILOT.md)
 
 ## Project docs
 
@@ -139,6 +144,8 @@ Auth setup: [docs/AUTH_SETUP.md](docs/AUTH_SETUP.md)
 |----------|-------------|
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to develop and open PRs |
 | [SECURITY.md](SECURITY.md) | Vulnerability reporting |
+| [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) | Cloud plant data + telemetry API |
+| [docs/PILOT.md](docs/PILOT.md) | 90-day pilot roadmap |
 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community standards |
 | [LICENSE](LICENSE) | MIT License |
 

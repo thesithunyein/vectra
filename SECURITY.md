@@ -29,7 +29,7 @@ We aim to acknowledge reports within **72 hours** and share a remediation timeli
 In scope:
 
 - Authentication and session handling (Supabase, wallet session)  
-- API routes (`/api/alerts/brief`, `/api/records/attest`)  
+- API routes (`/api/alerts/brief`, `/api/records/attest`, `/api/telemetry/ingest`, `/api/plant`)  
 - Secret handling (`OPENAI_API_KEY`, `SOLANA_SECRET_KEY`)  
 - Cross-user data access in the app layer  
 - On-chain attestation integrity
@@ -44,7 +44,7 @@ Out of scope:
 ## Secrets and deployment
 
 - Never commit `.env.local` or key material. Use `.env.example` as reference only.  
-- `OPENAI_API_KEY` and `SOLANA_SECRET_KEY` are **server-only** — they must not be exposed via `NEXT_PUBLIC_*`.  
+- `OPENAI_API_KEY`, `SOLANA_SECRET_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are **server-only**  
 - Rotate keys immediately if leaked.
 
 ## Safe harbor

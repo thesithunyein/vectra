@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -17,6 +18,12 @@ import {
 } from "@/lib/seed";
 import { nextRecordId, sealRecord } from "@/lib/record-seal";
 import { useAuth } from "@/lib/auth-context";
+import {
+  clearPlantCloud,
+  fetchPlantFromCloud,
+  savePlantToCloud,
+} from "@/lib/plant-cloud";
+import { isCloudUserId } from "@/lib/plant-db";
 import {
   clearPlantData as clearStoredPlant,
   hasPlantData,
@@ -31,6 +38,7 @@ interface Store {
   ready: boolean;
   usingSample: boolean;
   hasPlantData: boolean;
+  cloudSynced: boolean;
   devices: Device[];
   alerts: Alert[];
   maintenance: MaintenanceEvent[];
@@ -39,6 +47,7 @@ interface Store {
   loadSamplePlant: () => void;
   clearPlantData: () => void;
   importPlantData: (data: PlantData) => void;
+  refreshFromCloud: () => Promise<void>;
   acknowledgeAlert: (id: string) => void;
   assignAlert: (id: string) => void;
   resolveAlert: (id: string) => void;
@@ -48,81 +57,186 @@ interface Store {
 
 const StoreContext = createContext<Store | null>(null);
 
+function applyPlant(setters: {
+  setDevices: (d: Device[]) => void;
+  setAlerts: (a: Alert[]) => void;
+  setMaintenance: (m: MaintenanceEvent[]) => void;
+  setRecords: (r: SignedRecord[]) => void;
+  plant: PlantData;
+}) {
+  setters.setDevices(setters.plant.devices);
+  setters.setAlerts(setters.plant.alerts);
+  setters.setMaintenance(setters.plant.maintenance);
+  setters.setRecords(setters.plant.records);
+}
+
 export function StoreProvider({ children }: { children: ReactNode }) {
   const { user, refreshWorkspace } = useAuth();
   const [ready, setReady] = useState(false);
   const [usingSample, setUsingSample] = useState(false);
+  const [cloudSynced, setCloudSynced] = useState(false);
   const [devices, setDevices] = useState<Device[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [maintenance, setMaintenance] = useState<MaintenanceEvent[]>([]);
   const [records, setRecords] = useState<SignedRecord[]>([]);
   const [toast, setToast] = useState<string | null>(null);
+  const skipPersist = useRef(false);
 
   useEffect(() => {
     if (!user) {
       setReady(false);
       return;
     }
-    const ws = loadWorkspace(user.id);
-    if (ws.sampleData) {
-      setDevices(initialDevices);
-      setAlerts(initialAlerts);
-      setMaintenance(initialMaintenance);
-      setRecords(initialRecords);
-      setUsingSample(true);
-    } else {
-      const stored = loadPlantData(user.id);
-      setDevices(stored.devices);
-      setAlerts(stored.alerts);
-      setMaintenance(stored.maintenance);
-      setRecords(stored.records);
+
+    let cancelled = false;
+
+    async function load() {
+      setReady(false);
+      const ws = loadWorkspace(user!.id);
+
+      if (ws.sampleData) {
+        applyPlant({
+          setDevices,
+          setAlerts,
+          setMaintenance,
+          setRecords,
+          plant: {
+            devices: initialDevices,
+            alerts: initialAlerts,
+            maintenance: initialMaintenance,
+            records: initialRecords,
+          },
+        });
+        setUsingSample(true);
+        setCloudSynced(false);
+        if (!cancelled) setReady(true);
+        return;
+      }
+
       setUsingSample(false);
+      let plant: PlantData | null = null;
+      let synced = false;
+
+      if (isCloudUserId(user!.id)) {
+        plant = await fetchPlantFromCloud();
+        if (plant && hasPlantData(plant)) {
+          synced = true;
+        } else {
+          const local = loadPlantData(user!.id);
+          if (hasPlantData(local)) {
+            plant = local;
+            await savePlantToCloud(local);
+            synced = true;
+          } else {
+            plant = local;
+          }
+        }
+      } else {
+        plant = loadPlantData(user!.id);
+      }
+
+      if (!cancelled) {
+        applyPlant({
+          setDevices,
+          setAlerts,
+          setMaintenance,
+          setRecords,
+          plant: plant ?? { devices: [], alerts: [], maintenance: [], records: [] },
+        });
+        setCloudSynced(synced);
+        setReady(true);
+      }
     }
-    setReady(true);
+
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, [user?.id]);
 
   useEffect(() => {
-    if (!user || !ready || usingSample) return;
-    savePlantData(user.id, { devices, alerts, maintenance, records });
+    if (!user || !ready || usingSample || skipPersist.current) return;
+
+    const plant: PlantData = { devices, alerts, maintenance, records };
+    savePlantData(user.id, plant);
+
+    if (!isCloudUserId(user.id)) return;
+
+    const timer = window.setTimeout(async () => {
+      const ok = await savePlantToCloud(plant);
+      setCloudSynced(ok);
+    }, 500);
+
+    return () => window.clearTimeout(timer);
   }, [user, ready, usingSample, devices, alerts, maintenance, records]);
+
+  const refreshFromCloud = useCallback(async () => {
+    if (!user || !isCloudUserId(user.id) || usingSample) return;
+    const plant = await fetchPlantFromCloud();
+    if (plant) {
+      skipPersist.current = true;
+      applyPlant({ setDevices, setAlerts, setMaintenance, setRecords, plant });
+      savePlantData(user.id, plant);
+      window.setTimeout(() => {
+        skipPersist.current = false;
+      }, 100);
+      setCloudSynced(true);
+    }
+  }, [user, usingSample]);
 
   const loadSamplePlant = useCallback(() => {
     if (!user) return;
     clearStoredPlant(user.id);
+    void clearPlantCloud();
     saveWorkspace(user.id, { sampleData: true });
-    setDevices(initialDevices);
-    setAlerts(initialAlerts);
-    setMaintenance(initialMaintenance);
-    setRecords(initialRecords);
+    applyPlant({
+      setDevices,
+      setAlerts,
+      setMaintenance,
+      setRecords,
+      plant: {
+        devices: initialDevices,
+        alerts: initialAlerts,
+        maintenance: initialMaintenance,
+        records: initialRecords,
+      },
+    });
     setUsingSample(true);
+    setCloudSynced(false);
     refreshWorkspace();
     setToast("Example plant data loaded");
   }, [user, refreshWorkspace]);
 
-  const clearPlantData = useCallback(() => {
+  const clearPlantData = useCallback(async () => {
     if (!user) return;
     clearStoredPlant(user.id);
+    await clearPlantCloud();
     saveWorkspace(user.id, { sampleData: false });
-    setDevices([]);
-    setAlerts([]);
-    setMaintenance([]);
-    setRecords([]);
+    applyPlant({
+      setDevices,
+      setAlerts,
+      setMaintenance,
+      setRecords,
+      plant: { devices: [], alerts: [], maintenance: [], records: [] },
+    });
     setUsingSample(false);
+    setCloudSynced(false);
     refreshWorkspace();
     setToast("Plant data cleared");
   }, [user, refreshWorkspace]);
 
   const importPlantData = useCallback(
-    (data: PlantData) => {
+    async (data: PlantData) => {
       if (!user) return;
       clearStoredPlant(user.id);
       saveWorkspace(user.id, { sampleData: false });
-      setDevices(data.devices);
-      setAlerts(data.alerts);
-      setMaintenance(data.maintenance);
-      setRecords(data.records);
+      applyPlant({ setDevices, setAlerts, setMaintenance, setRecords, plant: data });
       setUsingSample(false);
       savePlantData(user.id, data);
+      if (isCloudUserId(user.id)) {
+        const ok = await savePlantToCloud(data);
+        setCloudSynced(ok);
+      }
       refreshWorkspace();
       setToast(
         `Imported ${data.devices.length} devices${data.alerts.length ? `, ${data.alerts.length} alerts` : ""}${data.maintenance.length ? `, ${data.maintenance.length} maintenance` : ""}`
@@ -154,9 +268,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const resolveAlert = useCallback((id: string) => {
-    setAlerts((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: "resolved" as const } : a))
-    );
+    setAlerts((prev) => {
+      const next = prev.map((a) =>
+        a.id === id ? { ...a, status: "resolved" as const } : a
+      );
+      setDevices((devs) =>
+        devs.map((d) => {
+          const open = next.filter(
+            (a) => a.deviceId === d.id && a.status !== "resolved"
+          ).length;
+          return {
+            ...d,
+            alertCount: open,
+            status: open === 0 && d.status !== "offline" ? "online" : d.status,
+          };
+        })
+      );
+      return next;
+    });
     setToast("Alert resolved");
   }, []);
 
@@ -253,6 +382,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ready,
       usingSample,
       hasPlantData: plantLoaded,
+      cloudSynced,
       devices,
       alerts,
       maintenance,
@@ -261,6 +391,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       loadSamplePlant,
       clearPlantData,
       importPlantData,
+      refreshFromCloud,
       acknowledgeAlert,
       assignAlert,
       resolveAlert,
@@ -271,6 +402,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ready,
       usingSample,
       plantLoaded,
+      cloudSynced,
       devices,
       alerts,
       maintenance,
@@ -279,6 +411,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       loadSamplePlant,
       clearPlantData,
       importPlantData,
+      refreshFromCloud,
       acknowledgeAlert,
       assignAlert,
       resolveAlert,
