@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { FaqAccordion } from "@/components/landing/FaqAccordion";
 import { HeroVideoBackdrop } from "@/components/landing/HeroVideoBackdrop";
+import { HeroLiveConsole } from "@/components/landing/HeroLiveConsole";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
@@ -178,6 +179,7 @@ export default function LandingPage() {
               How it works
             </a>
           </div>
+          <HeroLiveConsole />
         </motion.div>
         </section>
 
