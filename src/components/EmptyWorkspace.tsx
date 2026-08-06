@@ -1,11 +1,12 @@
 "use client";
 
-import { Factory } from "lucide-react";
+import Link from "next/link";
+import { Factory, Upload } from "lucide-react";
 import { useStore } from "@/lib/store";
 
 export function EmptyWorkspace({
   title = "No plant data yet",
-  description = "Your workspace starts empty. Connect machines when ready, or load example plant data to walk through the ops loop.",
+  description = "Import a CSV from Settings, or load example data to walk through the ops loop.",
 }: {
   title?: string;
   description?: string;
@@ -25,13 +26,22 @@ export function EmptyWorkspace({
           <p className="mt-1 max-w-lg text-[13px] text-[var(--text-secondary)]">{description}</p>
         </div>
       </div>
-      <button
-        type="button"
-        onClick={loadSamplePlant}
-        className="rounded-lg border border-[var(--border-strong)] bg-[var(--bg-elevated)] px-4 py-2 text-[13px] font-medium hover:bg-[var(--bg-hover)]"
-      >
-        Load example data
-      </button>
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href="/settings"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-4 py-2 text-[13px] font-medium text-white hover:brightness-110"
+        >
+          <Upload className="h-4 w-4" strokeWidth={1.5} />
+          Import CSV
+        </Link>
+        <button
+          type="button"
+          onClick={loadSamplePlant}
+          className="rounded-lg border border-[var(--border-strong)] bg-[var(--bg-elevated)] px-4 py-2 text-[13px] font-medium hover:bg-[var(--bg-hover)]"
+        >
+          Load example data
+        </button>
+      </div>
     </div>
   );
 }

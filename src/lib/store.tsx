@@ -17,12 +17,20 @@ import {
 } from "@/lib/seed";
 import { nextRecordId, sealRecord } from "@/lib/record-seal";
 import { useAuth } from "@/lib/auth-context";
+import {
+  clearPlantData as clearStoredPlant,
+  hasPlantData,
+  loadPlantData,
+  savePlantData,
+  type PlantData,
+} from "@/lib/plant-data";
 import { loadWorkspace, saveWorkspace } from "@/lib/workspace";
 import type { Alert, Device, MaintenanceEvent, SignedRecord } from "@/lib/types";
 
 interface Store {
   ready: boolean;
   usingSample: boolean;
+  hasPlantData: boolean;
   devices: Device[];
   alerts: Alert[];
   maintenance: MaintenanceEvent[];
@@ -30,6 +38,7 @@ interface Store {
   toast: string | null;
   loadSamplePlant: () => void;
   clearPlantData: () => void;
+  importPlantData: (data: PlantData) => void;
   acknowledgeAlert: (id: string) => void;
   assignAlert: (id: string) => void;
   resolveAlert: (id: string) => void;
@@ -62,17 +71,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setRecords(initialRecords);
       setUsingSample(true);
     } else {
-      setDevices([]);
-      setAlerts([]);
-      setMaintenance([]);
-      setRecords([]);
+      const stored = loadPlantData(user.id);
+      setDevices(stored.devices);
+      setAlerts(stored.alerts);
+      setMaintenance(stored.maintenance);
+      setRecords(stored.records);
       setUsingSample(false);
     }
     setReady(true);
   }, [user?.id]);
 
+  useEffect(() => {
+    if (!user || !ready || usingSample) return;
+    savePlantData(user.id, { devices, alerts, maintenance, records });
+  }, [user, ready, usingSample, devices, alerts, maintenance, records]);
+
   const loadSamplePlant = useCallback(() => {
     if (!user) return;
+    clearStoredPlant(user.id);
     saveWorkspace(user.id, { sampleData: true });
     setDevices(initialDevices);
     setAlerts(initialAlerts);
@@ -85,6 +101,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const clearPlantData = useCallback(() => {
     if (!user) return;
+    clearStoredPlant(user.id);
     saveWorkspace(user.id, { sampleData: false });
     setDevices([]);
     setAlerts([]);
@@ -92,8 +109,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setRecords([]);
     setUsingSample(false);
     refreshWorkspace();
-    setToast("Example plant data cleared");
+    setToast("Plant data cleared");
   }, [user, refreshWorkspace]);
+
+  const importPlantData = useCallback(
+    (data: PlantData) => {
+      if (!user) return;
+      clearStoredPlant(user.id);
+      saveWorkspace(user.id, { sampleData: false });
+      setDevices(data.devices);
+      setAlerts(data.alerts);
+      setMaintenance(data.maintenance);
+      setRecords(data.records);
+      setUsingSample(false);
+      savePlantData(user.id, data);
+      refreshWorkspace();
+      setToast(
+        `Imported ${data.devices.length} devices${data.alerts.length ? `, ${data.alerts.length} alerts` : ""}${data.maintenance.length ? `, ${data.maintenance.length} maintenance` : ""}`
+      );
+    },
+    [user, refreshWorkspace]
+  );
 
   const acknowledgeAlert = useCallback((id: string) => {
     setAlerts((prev) =>
@@ -210,10 +246,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const clearToast = useCallback(() => setToast(null), []);
 
+  const plantLoaded = hasPlantData({ devices, alerts, maintenance, records });
+
   const value = useMemo(
     () => ({
       ready,
       usingSample,
+      hasPlantData: plantLoaded,
       devices,
       alerts,
       maintenance,
@@ -221,6 +260,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       toast,
       loadSamplePlant,
       clearPlantData,
+      importPlantData,
       acknowledgeAlert,
       assignAlert,
       resolveAlert,
@@ -230,6 +270,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [
       ready,
       usingSample,
+      plantLoaded,
       devices,
       alerts,
       maintenance,
@@ -237,6 +278,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       toast,
       loadSamplePlant,
       clearPlantData,
+      importPlantData,
       acknowledgeAlert,
       assignAlert,
       resolveAlert,

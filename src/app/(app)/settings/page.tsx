@@ -5,10 +5,11 @@ import { TopBar } from "@/components/layout/TopBar";
 import { PageTransition } from "@/components/motion/PageTransition";
 import { useAuth } from "@/lib/auth-context";
 import { useStore } from "@/lib/store";
+import { ImportPlantData } from "@/components/settings/ImportPlantData";
 
 export default function SettingsPage() {
   const { user, updateWorkspace } = useAuth();
-  const { usingSample, loadSamplePlant, clearPlantData } = useStore();
+  const { usingSample, hasPlantData, loadSamplePlant, clearPlantData } = useStore();
   const [plant, setPlant] = useState("");
   const [plantSite, setPlantSite] = useState("");
   const [shift, setShift] = useState("");
@@ -117,11 +118,13 @@ export default function SettingsPage() {
             </button>
           </div>
 
+          <ImportPlantData />
+
           <div className="card p-6">
             <h3 className="text-[15px] font-medium">Example plant data</h3>
             <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
-              New workspaces start empty. Load example data to exercise alerts, maintenance, and
-              signed records before machines are connected.
+              Prefer a guided walkthrough? Load the built-in example plant to exercise alerts,
+              maintenance, and signed records without preparing a CSV.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               {!usingSample ? (
@@ -139,6 +142,15 @@ export default function SettingsPage() {
                   className="rounded-lg border border-red-500/30 px-4 py-2 text-[13px] text-red-400 hover:bg-red-500/10"
                 >
                   Clear example data
+                </button>
+              )}
+              {hasPlantData && !usingSample && (
+                <button
+                  type="button"
+                  onClick={clearPlantData}
+                  className="rounded-lg border border-red-500/30 px-4 py-2 text-[13px] text-red-400 hover:bg-red-500/10"
+                >
+                  Clear imported data
                 </button>
               )}
             </div>
